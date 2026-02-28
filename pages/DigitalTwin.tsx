@@ -81,7 +81,7 @@ const DigitalTwin: React.FC<{ user: UserProfile }> = ({ user }) => {
               <div>
                 <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">100% Ready By</p>
                 <p className="text-2xl font-black text-white">
-                  {scenario === 'intensive' ? 'August 12' : scenario === 'roadmap' ? 'September 28' : 'Dec 2024'}
+                  {scenario === 'intensive' ? 'August 12' : scenario === 'roadmap' ? 'September 28' : 'Dec 2025'}
                 </p>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
