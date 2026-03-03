@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="g" x1="96" y1="64" x2="416" y2="448" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F46E5"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="#020617"/>
+  <circle cx="390" cy="128" r="70" fill="url(#g)" opacity="0.35" filter="url(#blur)"/>
+  <circle cx="130" cy="380" r="88" fill="url(#g)" opacity="0.25" filter="url(#blur)"/>
+  <rect x="96" y="104" width="320" height="304" rx="56" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.10)" stroke-width="2"/>
+  <path d="M160 330V186c0-16 13-30 30-30h90c40 0 72 32 72 72s-32 72-72 72h-58v30h-62Z" fill="url(#g)"/>
+  <path d="M222 256h58c15 0 28-13 28-28s-13-28-28-28h-58v56Z" fill="#FFFFFF" opacity="0.9"/>
+  <path d="M352 348c0 12-10 22-22 22H206c-12 0-22-10-22-22v-2h168v2Z" fill="rgba(255,255,255,0.18)"/>
+  <path d="M184 346h168" stroke="rgba(255,255,255,0.30)" stroke-width="2" stroke-linecap="round"/>
+</svg>
+
