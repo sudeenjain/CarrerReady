@@ -115,9 +115,9 @@ const Landing: React.FC<{ onLogin: (user: any) => void }> = ({ onLogin }) => {
                 <span>The Future of Career Intelligence</span>
               </div>
               
-              <h1 className="text-6xl md:text-[120px] font-display font-black text-white tracking-tighter leading-[0.85] mb-12">
-                <span className="block animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-100">Architect Your</span>
-                <span className="block gradient-text animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">Dream Career.</span>
+              <h1 className="text-6xl md:text-[120px] font-display font-black text-white tracking-tighter leading-[0.85] mb-12 overflow-hidden">
+                <span className="block animate-in fade-in slide-in-from-bottom-full duration-1000 delay-100">Architect Your</span>
+                <span className="block gradient-text animate-in fade-in slide-in-from-bottom-full duration-1000 delay-300">Dream Career.</span>
               </h1>
               
               <p className="max-w-2xl text-xl text-slate-400 font-medium leading-relaxed mb-16 px-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
