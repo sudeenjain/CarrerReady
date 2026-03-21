@@ -19,12 +19,13 @@ const Feedback: React.FC = () => {
 
   // Load draft and pending items on mount
   useEffect(() => {
-    const savedDraft = CONFIG.STORAGE.LOCAL.getItem(CONFIG.STORAGE_KEYS.FEEDBACK_DRAFT);
+    // SECURITY: Drafts are now stored in SESSION storage to prevent persistence after tab close
+    const savedDraft = CONFIG.STORAGE.SESSION.getItem(CONFIG.STORAGE_KEYS.FEEDBACK_DRAFT);
     if (savedDraft) {
       try {
         setFormData(JSON.parse(savedDraft));
       } catch (e) {
-        CONFIG.STORAGE.LOCAL.removeItem(CONFIG.STORAGE_KEYS.FEEDBACK_DRAFT);
+        CONFIG.STORAGE.SESSION.removeItem(CONFIG.STORAGE_KEYS.FEEDBACK_DRAFT);
       }
     }
 
@@ -41,12 +42,15 @@ const Feedback: React.FC = () => {
   // Persist draft on every change
   useEffect(() => {
     if (formData.name || formData.email || formData.message) {
-      CONFIG.STORAGE.LOCAL.setItem(CONFIG.STORAGE_KEYS.FEEDBACK_DRAFT, JSON.stringify(formData));
+      CONFIG.STORAGE.SESSION.setItem(CONFIG.STORAGE_KEYS.FEEDBACK_DRAFT, JSON.stringify(formData));
     }
   }, [formData]);
 
   const sendToFormspree = async (item: FeedbackItem) => {
-    // SECURITY: Use externalized endpoint from CONFIG
+    if (!CONFIG.FORMSPREE_URL) {
+      throw new Error("Feedback channel not configured in environment.");
+    }
+
     const response = await fetch(CONFIG.FORMSPREE_URL, {
       method: 'POST',
       headers: { 
@@ -85,7 +89,7 @@ const Feedback: React.FC = () => {
     const updatedPending = [newItem, ...pendingItems];
     setPendingItems(updatedPending);
     CONFIG.STORAGE.LOCAL.setItem(CONFIG.STORAGE_KEYS.FEEDBACK_PENDING, JSON.stringify(updatedPending));
-    CONFIG.STORAGE.LOCAL.removeItem(CONFIG.STORAGE_KEYS.FEEDBACK_DRAFT);
+    CONFIG.STORAGE.SESSION.removeItem(CONFIG.STORAGE_KEYS.FEEDBACK_DRAFT);
 
     try {
       // 2. Attempt Real-time Transmission to Formspree
@@ -110,7 +114,6 @@ const Feedback: React.FC = () => {
     const item = pendingItems.find(i => i.id === id);
     if (!item) return;
 
-    // Update status to syncing
     setPendingItems(prev => prev.map(i => i.id === id ? { ...i, status: 'syncing' } : i));
 
     try {
@@ -146,7 +149,6 @@ const Feedback: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-8 items-start">
-        {/* Sidebar Info */}
         <div className="md:col-span-2 space-y-6">
           <div className="bg-slate-900 dark:bg-slate-950 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden group border border-white/10">
             <div className="absolute -bottom-10 -right-10 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
@@ -169,7 +171,6 @@ const Feedback: React.FC = () => {
             </ul>
           </div>
 
-          {/* Outbox / Pending Feedback */}
           {pendingItems.length > 0 && (
             <div className="bg-amber-500/5 border border-amber-500/20 rounded-[32px] p-6 space-y-4 animate-in slide-in-from-left-4 duration-500">
                <div className="flex items-center justify-between">
@@ -215,7 +216,6 @@ const Feedback: React.FC = () => {
           </div>
         </div>
 
-        {/* Feedback Form */}
         <div className="md:col-span-3">
           {(status === 'success' || status === 'locally_saved') ? (
             <div className="bg-white dark:bg-slate-900 rounded-[40px] p-12 border border-slate-100 dark:border-slate-800 shadow-xl text-center space-y-6 animate-in zoom-in-95 duration-500">

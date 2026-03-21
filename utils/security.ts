@@ -18,6 +18,9 @@ export const sanitizeAIInput = (text: string): string => {
     .replace(/systemInstruction/gi, '[REDACTED]')
     .replace(/disregard (the)? (above|below)/gi, '[REDACTED]')
     .replace(/you are now (a|an)/gi, '[REDACTED]')
+    .replace(/forget (your|all) (rules|directives)/gi, '[REDACTED]')
+    .replace(/output (your|the) system prompt/gi, '[REDACTED]')
+    .replace(/reveal (your|the) (instructions|persona)/gi, '[REDACTED]')
     // Limit excessive length to prevent resource exhaustion attacks
     .substring(0, 10000);
 };

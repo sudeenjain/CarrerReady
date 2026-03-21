@@ -9,18 +9,18 @@
 
 const getGeminiKey = () => {
   // Non-prefixed keys are NOT bundled by Vite, making them safe for server-side/proxy use.
-  // If running in a browser without a proxy, this will be undefined, triggering a security warning.
   return import.meta.env.GEMINI_API_KEY || '';
 };
 
 export const CONFIG = {
   GEMINI_API_KEY: getGeminiKey(),
-  FORMSPREE_URL: import.meta.env.VITE_FORMSPREE_URL || 'https://formspree.io/f/xojvgpla',
+  // Removed hardcoded fallback to prevent exposure of the Formspree ID in source code.
+  FORMSPREE_URL: import.meta.env.VITE_FORMSPREE_URL || '',
   IS_PRODUCTION: import.meta.env.PROD,
   STORAGE: {
-    // Use sessionStorage for sensitive profile data to prevent persistent XSS theft
+    // Use sessionStorage for sensitive profile data and drafts to prevent persistent XSS theft
     SESSION: window.sessionStorage,
-    // Use localStorage only for non-sensitive UI state
+    // Use localStorage only for non-sensitive UI state or reliability outboxes
     LOCAL: window.localStorage
   },
   STORAGE_KEYS: {
