@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { UserProfile, Skill, SkillLevel } from '../types';
 import { JOB_ROLES } from '../constants';
@@ -121,7 +120,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
     setValidationErrors([]);
     
     try {
-      // Read file as base64 to send to Gemini
       const base64 = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve((reader.result as string).split(',')[1]);
@@ -143,15 +141,11 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
             User's Name: "${formData.name}"
             
             RIGOROUS VERIFICATION PROTOCOL:
-            1. DOCUMENT CLASSIFICATION: Is this a professional CV/Resume? (Reject letters, essays, random text, or unrelated documents).
-            2. IDENTITY SYNC: Does the document belong to "${formData.name}"? (Check headers and contact info).
-            3. STRUCTURAL AUDIT: Verify the explicit presence or clear logical equivalents of these sections:
-               - Education (Institutional history)
-               - Experience (Work/Professional history)
-               - Technical Skills (Software, languages, or specialized tools)
-               - Projects (Verifiable practical applications)
+            1. DOCUMENT CLASSIFICATION: Is this a professional CV/Resume?
+            2. IDENTITY SYNC: Does the document belong to "${formData.name}"?
+            3. STRUCTURAL AUDIT: Verify Education, Experience, Technical Skills, and Projects.
             
-            Return a JSON object. If the document is unrelated or missing sections, populate 'errors' with highly specific feedback.`
+            Return a JSON object with extractedSkills and any errors.`
           }
         ],
         config: {
@@ -159,8 +153,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
           responseSchema: {
             type: Type.OBJECT,
             properties: {
-              isValidResume: { type: Type.BOOLEAN, description: "True if it's clearly a resume and not random text." },
-              nameMatch: { type: Type.BOOLEAN, description: "True if name matches identity provided." },
+              isValidResume: { type: Type.BOOLEAN },
+              nameMatch: { type: Type.BOOLEAN },
               sectionsFound: {
                 type: Type.OBJECT,
                 properties: {
@@ -168,8 +162,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
                   experience: { type: Type.BOOLEAN },
                   skills: { type: Type.BOOLEAN },
                   projects: { type: Type.BOOLEAN }
-                },
-                required: ["education", "experience", "skills", "projects"]
+                }
               },
               errors: { type: Type.ARRAY, items: { type: Type.STRING } },
               extractedSkills: {
@@ -181,29 +174,17 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
                     level: { type: Type.STRING, enum: ["Basic", "Intermediate", "Advanced"] },
                     category: { type: Type.STRING },
                     isSoftSkill: { type: Type.BOOLEAN }
-                  },
-                  required: ["name", "level", "category", "isSoftSkill"]
+                  }
                 }
               }
-            },
-            required: ["isValidResume", "nameMatch", "sectionsFound", "errors"]
+            }
           }
         }
       });
 
       const audit = JSON.parse(response.text || '{}');
-      const errs: string[] = audit.errors || [];
-      
-      if (!audit.isValidResume) errs.push("Integrity Failure: Document content does not match professional resume structure.");
-      if (!audit.nameMatch) errs.push(`Identity Mismatch: The provided document does not list "${formData.name}" as the owner.`);
-      
-      if (!audit.sectionsFound.education) errs.push("Verification Error: Education history missing.");
-      if (!audit.sectionsFound.experience) errs.push("Verification Error: Professional experience/work history missing.");
-      if (!audit.sectionsFound.skills) errs.push("Verification Error: Technical skills inventory missing.");
-      if (!audit.sectionsFound.projects) errs.push("Verification Error: Verifiable project section missing.");
-
-      if (errs.length > 0) {
-        setValidationErrors([...new Set(errs)]);
+      if (audit.errors?.length > 0) {
+        setValidationErrors(audit.errors);
         setIsAnalyzing(false);
         return;
       }
@@ -211,7 +192,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
       setDiscoveredSkills(audit.extractedSkills || []);
       setSubStep('verify');
     } catch (err) {
-      setValidationErrors(["System Error: AI Verification Engine failed to process the document stream. Ensure a valid PDF/DOCX is uploaded."]);
+      setValidationErrors(["System Error: AI Verification Engine failed to process the document stream."]);
     } finally {
       setIsAnalyzing(false);
     }
@@ -234,47 +215,39 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
     }
   };
 
-  const handleLinkedinSync = async () => {
-    if (!formData.linkedinProfile) return;
-    setIsAnalyzing(true);
-    try {
-      const result = await analysisService.analyzeLinkedInProfile(formData.linkedinProfile);
-      setDiscoveredSkills(prev => [...prev, ...result.skills]);
-      setSubStep('verify');
-    } catch (err) {
-      setValidationErrors(["LinkedIn extraction failed."]);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const steps = [{ id: 1, title: 'Identity', icon: User }, { id: 2, title: 'Analysis Gate', icon: Zap }, { id: 3, title: 'Benchmark', icon: Target }];
+  const steps = [
+    { id: 1, title: 'Identity', icon: User }, 
+    { id: 2, title: 'Analysis Gate', icon: Zap }, 
+    { id: 3, title: 'Benchmark', icon: Target }
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center py-20 px-6 relative overflow-hidden font-sans">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-50/50 dark:bg-indigo-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+    <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center py-20 px-6 relative overflow-hidden font-sans">
+      {/* Ambient Background */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-900/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
       
-      <div className="w-full max-w-xl mb-12 relative px-2">
-         <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-200 dark:bg-slate-800 -translate-y-1/2 rounded-full"></div>
-         <div className="absolute top-1/2 left-0 h-1 bg-indigo-500 -translate-y-1/2 transition-all duration-700 rounded-full" style={{ width: `${((step - 1) / (steps.length - 1)) * 100}%` }}></div>
+      {/* Progress Stepper */}
+      <div className="w-full max-w-xl mb-16 relative px-2">
+         <div className="absolute top-1/2 left-0 right-0 h-1 bg-white/5 -translate-y-1/2 rounded-full"></div>
+         <div className="absolute top-1/2 left-0 h-1 bg-indigo-500 -translate-y-1/2 transition-all duration-700 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" style={{ width: `${((step - 1) / (steps.length - 1)) * 100}%` }}></div>
          <div className="flex justify-between relative z-10">
            {steps.map((s) => (
              <div key={s.id} className="flex flex-col items-center">
-               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${step >= s.id ? 'bg-indigo-600 text-white shadow-xl scale-110' : 'bg-white dark:bg-slate-900 text-slate-300 dark:text-slate-700 border-2 border-slate-100 dark:border-slate-800'}`}>
+               <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 ${step >= s.id ? 'bg-indigo-600 text-white shadow-2xl scale-110 border border-indigo-400/50' : 'bg-[#0f172a] text-slate-600 border border-white/5'}`}>
                  {step > s.id ? <CheckCircle size={28} /> : <s.icon size={28} />}
                </div>
-               <span className={`text-[10px] font-black uppercase tracking-widest mt-4 ${step >= s.id ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-600'}`}>{s.title}</span>
+               <span className={`text-[9px] font-black uppercase tracking-[0.2em] mt-4 ${step >= s.id ? 'text-indigo-400' : 'text-slate-600'}`}>{s.title}</span>
              </div>
            ))}
          </div>
       </div>
 
-      <div className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl p-10 md:p-14 animate-in fade-in zoom-in-95 duration-700 border border-slate-100 dark:border-slate-800 relative">
+      <div className="w-full max-w-xl bg-[#0f172a]/60 backdrop-blur-2xl rounded-[48px] shadow-2xl p-10 md:p-14 animate-in fade-in zoom-in-95 duration-700 border border-white/10 relative">
         {step > 1 && (
           <button 
             type="button"
             onClick={handleBack}
-            className="absolute top-10 left-10 p-2 text-slate-400 hover:text-indigo-600 dark:text-slate-600 dark:hover:text-indigo-400 transition-colors"
+            className="absolute top-10 left-10 p-2 text-slate-500 hover:text-indigo-400 transition-colors"
             title="Go Back"
           >
             <ChevronLeft size={24} />
@@ -286,12 +259,15 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
             onSubmit={(e) => { e.preventDefault(); if(formData.name) handleNext(); }}
             className="space-y-10 animate-in slide-in-from-bottom-4"
           >
-            <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">Your Identity</h2>
-            <div className="relative">
-               <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-600" />
+            <div className="space-y-2">
+              <h2 className="text-4xl font-black text-white tracking-tighter">Your Identity</h2>
+              <p className="text-slate-400 text-sm font-medium">Establish your professional signal in the registry.</p>
+            </div>
+            <div className="relative group">
+               <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-400 transition-colors" />
                <input 
                  type="text" 
-                 className="w-full pl-14 pr-6 py-5 rounded-[24px] bg-slate-50 border border-slate-100 dark:border-slate-700 outline-none font-bold" 
+                 className="w-full pl-14 pr-6 py-5 rounded-[24px] bg-white/5 border border-white/10 outline-none font-bold text-white focus:border-indigo-500/50 transition-all" 
                  value={formData.name} 
                  onChange={(e) => setFormData({...formData, name: e.target.value})} 
                  placeholder="Full Name (Exactly as in Resume)" 
@@ -301,9 +277,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
             <button 
               type="submit" 
               disabled={!formData.name} 
-              className="w-full py-5 gradient-bg text-white rounded-[24px] font-black text-lg flex items-center justify-center gap-2 shadow-xl shadow-indigo-100 disabled:opacity-50"
+              className="w-full py-5 gradient-bg text-white rounded-[24px] font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-indigo-500/20 disabled:opacity-50 hover:scale-[1.02] active:scale-95 transition-all"
             >
-              Continue <ChevronRight size={22} />
+              Continue <ChevronRight size={18} />
             </button>
           </form>
         )}
@@ -311,50 +287,56 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
         {step === 2 && (
           <div className="space-y-10 animate-in slide-in-from-bottom-4">
             {subStep === 'selection' && (
-              <div className="space-y-6">
-                <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">Analysis Gate</h2>
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <h2 className="text-4xl font-black text-white tracking-tighter">Analysis Gate</h2>
+                  <p className="text-slate-400 text-sm font-medium">Select a verification protocol to audit your expertise.</p>
+                </div>
                 <div className="grid grid-cols-1 gap-4">
-                  <button type="button" onClick={() => setSubStep('resume-upload')} className="flex items-center gap-6 p-6 rounded-3xl border-2 border-slate-50 dark:border-slate-800 hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all text-left group">
-                    <div className="w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0"><FileUp size={32} /></div>
-                    <div><h4 className="font-black text-slate-800 dark:text-white">Strict Resume Verification</h4><p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Robust Section Audit (Education, Exp...)</p></div>
+                  <button type="button" onClick={() => setSubStep('resume-upload')} className="flex items-center gap-6 p-6 rounded-3xl border border-white/5 bg-white/[0.02] hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all text-left group">
+                    <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20"><FileUp size={32} /></div>
+                    <div><h4 className="font-black text-white">Resume Integrity Audit</h4><p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Strict Section Verification</p></div>
                   </button>
-                  <button type="button" onClick={() => setSubStep('github')} className="flex items-center gap-6 p-6 rounded-3xl border-2 border-slate-50 dark:border-slate-800 hover:border-slate-900 dark:hover:border-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-left group">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white flex items-center justify-center shrink-0"><Github size={32} /></div>
-                    <div><h4 className="font-black text-slate-800 dark:text-white">GitHub Evidence Pulse</h4><p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Verify skills via code history.</p></div>
+                  <button type="button" onClick={() => setSubStep('github')} className="flex items-center gap-6 p-6 rounded-3xl border border-white/5 bg-white/[0.02] hover:border-white/20 hover:bg-white/5 transition-all text-left group">
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 text-white flex items-center justify-center shrink-0 border border-white/10"><Github size={32} /></div>
+                    <div><h4 className="font-black text-white">GitHub Evidence Pulse</h4><p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Verify via Code History</p></div>
                   </button>
-                  <button type="button" onClick={() => setSubStep('linkedin')} className="flex items-center gap-6 p-6 rounded-3xl border-2 border-slate-50 dark:border-slate-800 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group">
-                    <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0"><Linkedin size={32} /></div>
-                    <div><h4 className="font-black text-slate-800 dark:text-white">LinkedIn Sync</h4><p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Extract bio intelligence.</p></div>
+                  <button type="button" onClick={() => setSubStep('linkedin')} className="flex items-center gap-6 p-6 rounded-3xl border border-white/5 bg-white/[0.02] hover:border-blue-500/50 hover:bg-blue-500/5 transition-all text-left group">
+                    <div className="w-16 h-16 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/20"><Linkedin size={32} /></div>
+                    <div><h4 className="font-black text-white">LinkedIn Bio Sync</h4><p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Extract Professional Signal</p></div>
                   </button>
                 </div>
               </div>
             )}
 
             {subStep === 'resume-upload' && (
-              <div className="space-y-6 animate-in fade-in">
-                <h3 className="text-2xl font-black dark:text-white tracking-tight">Resume Integrity Audit</h3>
+              <div className="space-y-8 animate-in fade-in">
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-white tracking-tight">Resume Integrity Audit</h3>
+                  <p className="text-slate-400 text-sm font-medium">Upload your professional document for structural analysis.</p>
+                </div>
                 <div 
                   onClick={() => fileInputRef.current?.click()}
                   className={`border-2 border-dashed rounded-[32px] p-12 text-center transition-all cursor-pointer group relative overflow-hidden ${
                     selectedFile 
-                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/10' 
-                    : 'border-slate-200 dark:border-slate-700 hover:border-indigo-500'
+                    ? 'border-indigo-500 bg-indigo-500/5' 
+                    : 'border-white/10 bg-white/[0.02] hover:border-indigo-500/50'
                   }`}
                 >
-                  <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx" onChange={handleFileChange} />
+                  <input type="file" ref={fileInputRef} className="hidden" accept=".pdf,.doc,.docx" onChange={handleFileChange} />
                   {selectedFile ? (
                     <div className="space-y-4 animate-in zoom-in-95">
                       <div className="w-20 h-20 bg-indigo-600 text-white rounded-[24px] flex items-center justify-center mx-auto shadow-xl"><FileText size={40} /></div>
                       <div>
-                        <p className="text-sm font-black text-slate-900 dark:text-white truncate max-w-xs mx-auto">{selectedFile.name}</p>
-                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Signal Ready for Audit</p>
+                        <p className="text-sm font-black text-white truncate max-w-xs mx-auto">{selectedFile.name}</p>
+                        <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-1">Signal Ready for Audit</p>
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto text-slate-400 group-hover:text-indigo-500 transition-all"><Upload size={32} /></div>
-                      <p className="text-sm font-black dark:text-white">Select Professional Document</p>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-widest font-black">PDF, DOCX, PPTX ONLY</p>
+                      <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto text-slate-500 group-hover:text-indigo-400 transition-all"><Upload size={32} /></div>
+                      <p className="text-sm font-black text-white">Select Professional Document</p>
+                      <p className="text-[9px] text-slate-500 uppercase tracking-widest font-black">PDF, DOCX ONLY</p>
                     </div>
                   )}
                 </div>
@@ -362,7 +344,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
                 {validationErrors.length > 0 && (
                   <div className="space-y-2 animate-in slide-in-from-top-2">
                     {validationErrors.map((err, i) => (
-                      <div key={i} className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-2xl text-[10px] font-black uppercase text-red-500 tracking-widest flex items-start gap-3 text-left">
+                      <div key={i} className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-[9px] font-black uppercase text-red-400 tracking-widest flex items-start gap-3 text-left">
                         <AlertTriangle size={16} className="shrink-0" />
                         <span>{err}</span>
                       </div>
@@ -374,54 +356,30 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
                   type="button"
                   onClick={handleResumeScan} 
                   disabled={isAnalyzing || !selectedFile} 
-                  className="w-full py-5 gradient-bg text-white rounded-3xl font-black shadow-xl disabled:opacity-40 flex items-center justify-center gap-3 transition-all"
+                  className="w-full py-5 gradient-bg text-white rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl disabled:opacity-40 flex items-center justify-center gap-3 transition-all"
                 >
-                  {isAnalyzing ? <Loader2 className="animate-spin" size={20} /> : <ShieldCheck size={20} />}
+                  {isAnalyzing ? <Loader2 className="animate-spin" size={18} /> : <ShieldCheck size={18} />}
                   {isAnalyzing ? 'Strict Structural Audit...' : 'Authorize Integrity Scan'}
                 </button>
               </div>
             )}
 
-            {(subStep === 'github' || subStep === 'linkedin') && (
-              <form 
-                onSubmit={(e) => { e.preventDefault(); subStep === 'github' ? handleGithubSync() : handleLinkedinSync(); }}
-                className="space-y-6 animate-in fade-in"
-              >
-                <h3 className="text-2xl font-black dark:text-white">{subStep === 'github' ? 'GitHub Audit' : 'LinkedIn Analysis'}</h3>
-                <div className="relative">
-                  <input 
-                    type="text" 
-                    className="w-full px-6 py-5 rounded-[24px] bg-slate-50 border border-slate-100 dark:border-slate-700 outline-none font-bold" 
-                    placeholder={subStep === 'github' ? 'GitHub Username' : 'LinkedIn Professional Bio Text'} 
-                    value={subStep === 'github' ? formData.githubUser : formData.linkedinProfile} 
-                    onChange={(e) => subStep === 'github' ? setFormData({...formData, githubUser: e.target.value}) : setFormData({...formData, linkedinProfile: e.target.value})} 
-                    autoFocus
-                  />
-                </div>
-                <button 
-                  type="submit"
-                  className="w-full py-5 gradient-bg text-white rounded-3xl font-black shadow-xl flex items-center justify-center gap-3"
-                  disabled={isAnalyzing}
-                >
-                  {isAnalyzing ? <Loader2 className="animate-spin" size={20} /> : <Zap size={20} />}
-                  {isAnalyzing ? 'Synthesizing Signal...' : 'Confirm Intelligence'}
-                </button>
-              </form>
-            )}
-
             {subStep === 'verify' && (
-              <div className="space-y-6 animate-in fade-in">
-                <h3 className="text-2xl font-black dark:text-white">Detected Skill Signature</h3>
+              <div className="space-y-8 animate-in fade-in">
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-white tracking-tight">Detected Skill Signature</h3>
+                  <p className="text-slate-400 text-sm font-medium">The AI has extracted the following expertise signals.</p>
+                </div>
                 <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
                   {discoveredSkills.map((s, idx) => (
-                    <div key={idx} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                      <span className="text-xs font-black text-slate-800 dark:text-white">{s.name}</span>
+                    <div key={idx} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between group hover:bg-white/10 transition-all">
+                      <span className="text-[11px] font-black text-white uppercase tracking-tight">{s.name}</span>
                       <CheckCircle size={14} className="text-green-500" />
                     </div>
                   ))}
                 </div>
-                <button type="button" onClick={() => setStep(3)} className="w-full py-5 gradient-bg text-white rounded-3xl font-black shadow-xl flex items-center justify-center gap-3">
-                  Proceed to Benchmark <ArrowRight size={20}/>
+                <button type="button" onClick={() => setStep(3)} className="w-full py-5 gradient-bg text-white rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all">
+                  Proceed to Benchmark <ArrowRight size={18}/>
                 </button>
               </div>
             )}
@@ -433,22 +391,33 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
             onSubmit={(e) => { e.preventDefault(); if(formData.targetRole) handleNext(); }}
             className="space-y-10 animate-in slide-in-from-bottom-4"
           >
-            <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">Job Benchmark</h2>
+            <div className="space-y-2">
+              <h2 className="text-4xl font-black text-white tracking-tighter">Job Benchmark</h2>
+              <p className="text-slate-400 text-sm font-medium">Select your target role to calibrate the roadmap.</p>
+            </div>
             <div className="grid grid-cols-1 gap-4">
               {JOB_ROLES.map((role) => (
                 <button 
                   type="button"
                   key={role.id} 
                   onClick={() => setFormData({...formData, targetRole: role.title})} 
-                  className={`text-left p-6 rounded-[24px] border-2 transition-all flex items-center justify-between ${formData.targetRole === role.title ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950' : 'border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-900'}`}
+                  className={`text-left p-6 rounded-[32px] border transition-all flex items-center justify-between group ${formData.targetRole === role.title ? 'border-indigo-500 bg-indigo-500/10' : 'border-white/5 bg-white/[0.02] hover:border-white/20'}`}
                 >
-                  <div className="flex items-center gap-5"><div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${formData.targetRole === role.title ? 'bg-indigo-600 text-white' : 'bg-slate-50 dark:bg-slate-800 text-slate-300'}`}><Briefcase size={28} /></div><div><h4 className="font-black dark:text-white">{role.title}</h4><p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Benchmark Mode</p></div></div>
-                  {formData.targetRole === role.title && <CheckCircle size={20} className="text-indigo-600" />}
+                  <div className="flex items-center gap-5">
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${formData.targetRole === role.title ? 'bg-indigo-600 text-white' : 'bg-white/5 text-slate-600'}`}>
+                      <Briefcase size={28} />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-white">{role.title}</h4>
+                      <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-1">Benchmark Mode</p>
+                    </div>
+                  </div>
+                  {formData.targetRole === role.title && <CheckCircle size={20} className="text-indigo-400" />}
                 </button>
               ))}
             </div>
-            <button type="submit" disabled={!formData.targetRole} className="w-full py-6 gradient-bg text-white rounded-[24px] font-black text-xl shadow-xl shadow-indigo-100">
-              Unlock Career Roadmap <Zap size={20} className="inline ml-2"/>
+            <button type="submit" disabled={!formData.targetRole} className="w-full py-6 gradient-bg text-white rounded-[32px] font-black text-sm uppercase tracking-widest shadow-xl shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all">
+              Unlock Career Roadmap <Zap size={18} className="inline ml-2"/>
             </button>
           </form>
         )}

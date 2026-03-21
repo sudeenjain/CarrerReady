@@ -61,7 +61,6 @@ const Roadmap: React.FC<{ user: UserProfile, onUpdateUser: (u: UserProfile) => v
       const data = await analysisService.generateRoadmap(user.currentSkills, user.targetRole);
       setSteps(data);
       localStorage.setItem(`roadmap_daily_${user.targetRole}`, JSON.stringify(data));
-      // Auto-expand current day or day 1
       setExpandedDay(data[0]?.day || 1);
     } catch (err) {
       console.error("Roadmap generation failed", err);
