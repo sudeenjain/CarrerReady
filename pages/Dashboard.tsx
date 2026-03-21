@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
-import { UserProfile, RoadmapStep } from '../types';
+import React from 'react';
+import { UserProfile } from '../types';
 import { ReadinessScoreGauge } from '../components/ReadinessScoreGauge';
+import SkillRadarChart from '../components/SkillRadarChart';
 import { calculateReadinessScore } from '../utils/scoreCalculator';
 import { JOB_ROLES } from '../constants';
-import { Zap, Trophy, ChevronRight, Plus, Github, Flame, ShieldCheck, Sparkles, Star, TrendingUp, BrainCircuit } from 'lucide-react';
+import { Zap, ChevronRight, Github, Flame, Sparkles, Star, TrendingUp, BrainCircuit, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Dashboard: React.FC<{ 
@@ -13,10 +14,7 @@ const Dashboard: React.FC<{
 }> = ({ user, onOpenUpload, onOpenGitHub }) => {
   const role = JOB_ROLES.find(r => r.title === user.targetRole) || JOB_ROLES[0];
   
-  // Total potential tasks in a 45-day roadmap (4 per day)
   const totalRoadmapTasks = 45 * 4;
-  
-  // Extract completed roadmap tasks from completedResources
   const roadmapCompletions = (user.completedResources || []).filter(k => 
     k.match(/^day-\d+-(learn|practice|build|review)$/)
   ).length;
@@ -67,26 +65,56 @@ const Dashboard: React.FC<{
           </div>
         </div>
 
-        {/* Global XP Stats & Evidence Sync */}
-        <div className="grid grid-cols-1 gap-6">
-          <div className="bg-[#020617] rounded-[32px] p-8 text-white shadow-2xl border border-white/10 relative overflow-hidden group">
-            <div className="absolute -bottom-4 -right-4 opacity-10 group-hover:scale-110 transition-transform">
-               <Zap size={100} />
+        {/* Global XP Stats */}
+        <div className="bg-[#020617] rounded-[32px] p-8 text-white shadow-2xl border border-white/10 relative overflow-hidden group">
+          <div className="absolute -bottom-4 -right-4 opacity-10 group-hover:scale-110 transition-transform">
+             <Zap size={100} />
+          </div>
+          <h4 className="font-black text-[10px] uppercase tracking-widest text-indigo-400 mb-6">Total Achievement XP</h4>
+          <div className="flex items-end gap-3">
+             <span className="text-6xl font-black text-white">{breakdown.total * 12}</span>
+             <span className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Points</span>
+          </div>
+          <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest italic">Industry Ready Velocity</p>
+            <div className="flex items-center gap-1 text-green-400">
+              <TrendingUp size={12} />
+              <span className="text-[10px] font-black">Accelerated</span>
             </div>
-            <h4 className="font-black text-[10px] uppercase tracking-widest text-indigo-400 mb-6">Total Achievement XP</h4>
-            <div className="flex items-end gap-3">
-               <span className="text-6xl font-black text-white">{breakdown.total * 12}</span>
-               <span className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Points</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Skill Coverage Visualization */}
+        <div className="lg:col-span-2 bg-[#0f172a]/60 backdrop-blur-xl rounded-[40px] p-8 border border-white/10 shadow-2xl">
+          <div className="flex items-center justify-between mb-6 px-2">
+            <div>
+              <h3 className="text-xl font-black text-white tracking-tight">Skill Coverage</h3>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Expertise vs. Industry Benchmark</p>
             </div>
-            <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest italic">Industry Ready Velocity</p>
-              <div className="flex items-center gap-1 text-green-400">
-                <TrendingUp size={12} />
-                <span className="text-[10px] font-black">Accelerated</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                <span className="text-[9px] font-black text-slate-400 uppercase">You</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-slate-600"></div>
+                <span className="text-[9px] font-black text-slate-400 uppercase">Target</span>
               </div>
             </div>
           </div>
+          <SkillRadarChart user={user} />
+          <div className="mt-6 p-4 bg-white/5 rounded-2xl border border-white/5 flex items-start gap-3">
+            <Info size={16} className="text-indigo-400 shrink-0 mt-0.5" />
+            <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+              This visualization maps your current proficiency levels against the standard requirements for a <span className="text-white font-bold">{user.targetRole}</span>. Focus on expanding the indigo area to match the benchmark.
+            </p>
+          </div>
+        </div>
 
+        {/* Sidebar Actions */}
+        <div className="space-y-6">
           <button 
             onClick={onOpenGitHub}
             className="bg-[#0f172a]/40 backdrop-blur-md rounded-[32px] p-6 border border-white/10 hover:border-indigo-500/50 transition-all group text-left w-full"
@@ -104,7 +132,7 @@ const Dashboard: React.FC<{
             </div>
           </button>
 
-          <Link to="/intelligence" className="bg-[#0f172a]/40 backdrop-blur-md rounded-[32px] p-6 border border-white/10 hover:border-indigo-500/50 transition-all group">
+          <Link to="/intelligence" className="bg-[#0f172a]/40 backdrop-blur-md rounded-[32px] p-6 border border-white/10 hover:border-indigo-500/50 transition-all group block">
             <h4 className="font-black text-indigo-400 text-[10px] uppercase tracking-widest mb-4 ml-1 flex items-center gap-2">
               <BrainCircuit size={14} /> Strategic Intelligence
             </h4>
@@ -117,6 +145,15 @@ const Dashboard: React.FC<{
                </div>
             </div>
           </Link>
+
+          <div className="bg-indigo-600 rounded-[32px] p-6 shadow-xl shadow-indigo-600/20 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform">
+               <Sparkles size={60} />
+            </div>
+            <h4 className="font-black text-indigo-100 text-[10px] uppercase tracking-widest mb-2">Next Milestone</h4>
+            <p className="text-white font-black text-sm">Complete Day 7 Project</p>
+            <p className="text-[10px] text-indigo-200 font-medium mt-1">Unlocks +15 Mastery Points</p>
+          </div>
         </div>
       </div>
 
