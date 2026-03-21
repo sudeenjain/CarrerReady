@@ -38,15 +38,14 @@ export class GeminiProvider implements AnalysisProvider {
   async connectToInterview(config: any) {
     const ai = this.getClient();
     
-    // The SDK's LiveCallbacks type includes message, close, and error, but not open.
-    // We trigger onopen manually once the connection promise resolves.
+    // The SDK's LiveCallbacks type uses onmessage, onclose, and onerror.
     const session = await ai.live.connect({
       model: config.model || 'gemini-2.0-flash-exp',
       config: config.config,
       callbacks: {
-        message: config.callbacks?.onmessage,
-        close: config.callbacks?.onclose,
-        error: config.callbacks?.onerror,
+        onmessage: config.callbacks?.onmessage,
+        onclose: config.callbacks?.onclose,
+        onerror: config.callbacks?.onerror,
       }
     });
 
