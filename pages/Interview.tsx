@@ -15,7 +15,8 @@ import {
   AudioLines as WaveIcon, 
   Clock, 
   Zap,
-  Activity
+  Activity,
+  AlertCircle
 } from 'lucide-react';
 
 // Manual base64 decoding implementation
@@ -63,9 +64,9 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
   const [isActive, setIsActive] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [status, setStatus] = useState<'listening' | 'thinking' | 'responding' | 'idle'>('idle');
+  const [error, setError] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<{ role: 'user' | 'model', text: string, timestamp: string }[]>([]);
   
-  // Unified display buffers
   const [currentInput, setCurrentInput] = useState('');
   const [currentOutput, setCurrentOutput] = useState('');
   const [speechTimer, setSpeechTimer] = useState(0);
@@ -80,7 +81,6 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
   const streamRef = useRef<MediaStream | null>(null);
   const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
 
-  // Handle Turn End Logic (Silence or Segment Limit)
   const commitTurn = () => {
     if (!currentInputRef.current && !currentOutputRef.current) return;
     
@@ -99,14 +99,21 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
   };
 
   const startInterview = async () => {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      setError("Neural Link Failure: GEMINI_API_KEY is missing from the environment.");
+      return;
+    }
+
     setIsConnecting(true);
+    setError(null);
     setCurrentInput('');
     setCurrentOutput('');
     currentInputRef.current = '';
     currentOutputRef.current = '';
     setSpeechTimer(0);
     
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
     
     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -115,7 +122,7 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
       streamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
       
       const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+        model: 'gemini-2.0-flash-exp',
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: { 
@@ -139,11 +146,9 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
             setIsActive(true);
             setStatus('listening');
             
-            // Turn Duration Monitoring (45s Limit)
             segmentIntervalRef.current = setInterval(() => {
               setSpeechTimer(prev => {
                 if (prev >= 45) {
-                  // Segment limit reached - force commit visual turn
                   setStatus('thinking');
                   return 45;
                 }
@@ -155,7 +160,7 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
             const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
             
             scriptProcessor.onaudioprocess = (e) => {
-              if (speechTimer >= 45) return; // Cut off mic input visually if segment limit reached
+              if (speechTimer >= 45) return;
               
               const inputData = e.inputBuffer.getChannelData(0);
               const int16 = new Int16Array(inputData.length);
@@ -171,7 +176,6 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
             scriptProcessor.connect(inputCtx.destination);
           },
           onmessage: async (msg: LiveServerMessage) => {
-            // Audio Playback Handler
             const base64Audio = msg.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (base64Audio && audioContextRef.current) {
               setStatus('responding');
@@ -186,32 +190,27 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
               source.onended = () => sourcesRef.current.delete(source);
             }
 
-            // User Input Transcription - Unified Box & Silence Detection
             if (msg.serverContent?.inputTranscription) {
               setStatus('listening');
               currentInputRef.current += msg.serverContent.inputTranscription.text;
               setCurrentInput(currentInputRef.current);
 
-              // 2-Second Silence Timer
               if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
               silenceTimerRef.current = setTimeout(() => {
                 setStatus('thinking');
               }, 2000);
             }
 
-            // Model Output Transcription - Consolidated Box
             if (msg.serverContent?.outputTranscription) {
               currentOutputRef.current += msg.serverContent.outputTranscription.text;
               setCurrentOutput(currentOutputRef.current);
             }
 
-            // Turn Completion Signal
             if (msg.serverContent?.turnComplete) {
               commitTurn();
               setStatus('listening');
             }
 
-            // Interruption Protocol
             if (msg.serverContent?.interrupted) {
               sourcesRef.current.forEach(s => s.stop());
               sourcesRef.current.clear();
@@ -219,18 +218,24 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
             }
           },
           onclose: () => stopInterview(),
-          onerror: (e) => console.error("Neural Interface Error:", e)
+          onerror: (e) => {
+            console.error("Neural Interface Error:", e);
+            setError("Neural Link Interrupted: The connection to the AI model was lost.");
+            stopInterview();
+          }
         }
       });
       sessionRef.current = await sessionPromise;
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setIsConnecting(false);
+      setError(err.message || "Neural Link Failure: Could not establish connection.");
     }
   };
 
   const stopInterview = () => {
     setIsActive(false);
+    setIsConnecting(false);
     streamRef.current?.getTracks().forEach(t => t.stop());
     sourcesRef.current.forEach(s => s.stop());
     sourcesRef.current.clear();
@@ -247,7 +252,7 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
             <div className={`w-2.5 h-2.5 rounded-full ${isActive ? 'bg-red-500 animate-ping' : 'bg-slate-300'}`}></div>
             Secure Interview Protocol v2.5
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">
+          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none">
             The <span className="gradient-text">Architect's Chamber.</span>
           </h2>
         </div>
@@ -271,8 +276,18 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
         )}
       </div>
 
+      {error && (
+        <div className="mx-4 p-6 bg-red-500/10 border border-red-500/20 rounded-[32px] flex items-start gap-4 animate-in shake">
+          <AlertCircle className="text-red-500 shrink-0" size={24} />
+          <div className="space-y-1">
+            <p className="text-sm font-black text-red-400 uppercase tracking-widest">System Error Detected</p>
+            <p className="text-xs font-bold text-slate-300">{error}</p>
+            <button onClick={() => setError(null)} className="text-[10px] font-black text-red-400 underline uppercase tracking-widest mt-2">Dismiss Signal</button>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Sidebar Info & Visualizer */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-slate-900 rounded-[40px] p-8 text-white shadow-2xl relative overflow-hidden group border border-white/10">
              <div className="absolute -bottom-10 -right-10 opacity-10 group-hover:scale-110 transition-transform"><Bot size={200} /></div>
@@ -308,7 +323,6 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
           </div>
         </div>
 
-        {/* Unified Conversation Area */}
         <div className="lg:col-span-3 flex flex-col gap-6">
           <div className="bg-white dark:bg-slate-900 rounded-[48px] border border-slate-100 dark:border-slate-800 flex flex-col min-h-[600px] relative overflow-hidden shadow-2xl">
             {!isActive && !isConnecting ? (
@@ -342,12 +356,11 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
                  </div>
                  <div className="text-center space-y-2">
                     <p className="text-[12px] font-black uppercase tracking-[0.4em] text-indigo-600 animate-pulse">Syncing Neural Link...</p>
-                    <p className="text-xs font-bold text-slate-400">Negotiating latency with Gemini 2.5 Flash</p>
+                    <p className="text-xs font-bold text-slate-400">Negotiating latency with Gemini 2.0 Flash</p>
                  </div>
               </div>
             ) : (
               <div className="flex-1 flex flex-col p-8 md:p-12">
-                 {/* Transcription Feed */}
                  <div className="flex-1 overflow-y-auto space-y-10 px-4 custom-scrollbar">
                     {transcript.map((m, i) => (
                       <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} animate-in slide-in-from-bottom-4 duration-500`}>
@@ -366,7 +379,6 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
                       </div>
                     ))}
                     
-                    {/* UNIFIED CURRENT USER BOX */}
                     {currentInput && (
                       <div className="flex flex-col items-end animate-in fade-in slide-in-from-right-4 duration-300">
                         <div className="flex items-center gap-3 mb-2 px-1">
@@ -379,7 +391,6 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
                       </div>
                     )}
 
-                    {/* UNIFIED CURRENT BOT BOX */}
                     {currentOutput && (
                       <div className="flex flex-col items-start animate-in fade-in slide-in-from-left-4 duration-300">
                         <div className="flex items-center gap-3 mb-2 px-1">
@@ -393,7 +404,6 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
                     )}
                  </div>
 
-                 {/* Interaction Footer */}
                  <div className="pt-10 flex flex-col items-center justify-center gap-8 border-t border-slate-100 dark:border-slate-800 mt-8">
                     <div className="flex items-center gap-10">
                        <div className="flex flex-col items-center gap-3">
@@ -408,7 +418,6 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
                        </div>
 
                        <div className="relative">
-                          {/* Visual Wave Ring */}
                           <div className={`absolute inset-0 -m-4 rounded-full border-4 border-indigo-500/20 ${status === 'listening' ? 'animate-ping' : ''}`}></div>
                           <div className={`w-24 h-24 rounded-full flex items-center justify-center text-white transition-all duration-500 shadow-2xl relative z-10 ${
                             status === 'listening' ? 'bg-indigo-600 scale-110' : 
