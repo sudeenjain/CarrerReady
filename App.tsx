@@ -214,7 +214,8 @@ const App: React.FC = () => {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
-        const savedUser = localStorage.getItem(CONFIG.STORAGE_KEYS.USER);
+        // SECURITY: Fetch from sessionStorage instead of localStorage for sensitive profile data
+        const savedUser = CONFIG.STORAGE.SESSION.getItem(CONFIG.STORAGE_KEYS.USER);
         if (savedUser) {
           try {
             const parsed = JSON.parse(savedUser);
@@ -232,7 +233,7 @@ const App: React.FC = () => {
               setUser(newUser as AppUser);
             }
           } catch (e) {
-            localStorage.removeItem(CONFIG.STORAGE_KEYS.USER);
+            CONFIG.STORAGE.SESSION.removeItem(CONFIG.STORAGE_KEYS.USER);
           }
         } else {
           const newUser = {
@@ -260,18 +261,17 @@ const App: React.FC = () => {
     if (!user) return;
     const updatedUser = { ...user, ...data, isOnboardingComplete: true };
     setUser(updatedUser as AppUser);
-    localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(updatedUser));
+    // SECURITY: Persist to sessionStorage
+    CONFIG.STORAGE.SESSION.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(updatedUser));
   };
 
   const handleLogout = async () => {
     await auth.signOut();
     setUser(null);
     
-    // SECURITY: Clear all sensitive local and session storage data
-    Object.values(CONFIG.STORAGE_KEYS).forEach(key => {
-      localStorage.removeItem(key);
-      sessionStorage.removeItem(key);
-    });
+    // SECURITY: Clear all sensitive session data
+    CONFIG.STORAGE.SESSION.removeItem(CONFIG.STORAGE_KEYS.USER);
+    CONFIG.STORAGE.SESSION.removeItem(CONFIG.STORAGE_KEYS.ONBOARDING_TEMP);
     
     window.location.hash = '/landing';
   };
@@ -296,7 +296,7 @@ const App: React.FC = () => {
         projects: Array.from(projectMap.values())
       };
       
-      localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(updated));
+      CONFIG.STORAGE.SESSION.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(updated));
       return updated as AppUser;
     });
   };
@@ -305,7 +305,7 @@ const App: React.FC = () => {
     setUser(prev => {
       if (!prev) return null;
       const newUser = { ...prev, ...updated };
-      localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(newUser));
+      CONFIG.STORAGE.SESSION.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(newUser));
       return newUser as AppUser;
     });
   };

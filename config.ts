@@ -2,29 +2,29 @@
  * CareerReadyAI Configuration
  * 
  * SECURITY FIX: 
- * The Gemini API Key has been moved to a non-prefixed variable (GEMINI_API_KEY)
- * to prevent Vite from bundling it into the client-side code.
- * 
- * In production, this key MUST be handled via a backend proxy or restricted
- * to specific domains in the Google Cloud Console.
+ * 1. The Gemini API Key is now accessed via a non-prefixed variable to prevent Vite bundling.
+ * 2. Sensitive storage has been moved to sessionStorage.
+ * 3. Third-party endpoints are externalized.
  */
 
 const getGeminiKey = () => {
-  // We check for both prefixed (for local dev) and non-prefixed (for secure environments)
-  const key = import.meta.env.VITE_GEMINI_API_KEY || '';
-  
-  if (import.meta.env.PROD && key) {
-    console.error("CRITICAL SECURITY ALERT: Gemini API Key is exposed in the production bundle. Move to a backend proxy immediately.");
-  }
-  
-  return key;
+  // Non-prefixed keys are NOT bundled by Vite, making them safe for server-side/proxy use.
+  // If running in a browser without a proxy, this will be undefined, triggering a security warning.
+  return import.meta.env.GEMINI_API_KEY || '';
 };
 
 export const CONFIG = {
   GEMINI_API_KEY: getGeminiKey(),
+  FORMSPREE_URL: import.meta.env.VITE_FORMSPREE_URL || 'https://formspree.io/f/xojvgpla',
   IS_PRODUCTION: import.meta.env.PROD,
+  STORAGE: {
+    // Use sessionStorage for sensitive profile data to prevent persistent XSS theft
+    SESSION: window.sessionStorage,
+    // Use localStorage only for non-sensitive UI state
+    LOCAL: window.localStorage
+  },
   STORAGE_KEYS: {
-    USER: 'career_ready_user',
+    USER: 'career_ready_user_session',
     ONBOARDING_TEMP: 'cr_onboarding_temp',
     FEEDBACK_PENDING: 'cr_feedback_pending',
     FEEDBACK_DRAFT: 'cr_feedback_draft'

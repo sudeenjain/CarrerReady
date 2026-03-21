@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Send, User, MessageSquare, CheckCircle, AlertCircle, Loader2, Sparkles, ShieldCheck, Clock, Trash2, RefreshCcw } from 'lucide-react';
+import { CONFIG } from '../config';
 
 interface FeedbackItem {
   id: string;
@@ -10,10 +11,6 @@ interface FeedbackItem {
   status: 'pending' | 'syncing';
 }
 
-const DRAFT_KEY = 'cr_feedback_draft';
-const PENDING_KEY = 'cr_feedback_pending';
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xojvgpla';
-
 const Feedback: React.FC = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [pendingItems, setPendingItems] = useState<FeedbackItem[]>([]);
@@ -22,21 +19,21 @@ const Feedback: React.FC = () => {
 
   // Load draft and pending items on mount
   useEffect(() => {
-    const savedDraft = localStorage.getItem(DRAFT_KEY);
+    const savedDraft = CONFIG.STORAGE.LOCAL.getItem(CONFIG.STORAGE_KEYS.FEEDBACK_DRAFT);
     if (savedDraft) {
       try {
         setFormData(JSON.parse(savedDraft));
       } catch (e) {
-        localStorage.removeItem(DRAFT_KEY);
+        CONFIG.STORAGE.LOCAL.removeItem(CONFIG.STORAGE_KEYS.FEEDBACK_DRAFT);
       }
     }
 
-    const savedPending = localStorage.getItem(PENDING_KEY);
+    const savedPending = CONFIG.STORAGE.LOCAL.getItem(CONFIG.STORAGE_KEYS.FEEDBACK_PENDING);
     if (savedPending) {
       try {
         setPendingItems(JSON.parse(savedPending));
       } catch (e) {
-        localStorage.removeItem(PENDING_KEY);
+        CONFIG.STORAGE.LOCAL.removeItem(CONFIG.STORAGE_KEYS.FEEDBACK_PENDING);
       }
     }
   }, []);
@@ -44,13 +41,13 @@ const Feedback: React.FC = () => {
   // Persist draft on every change
   useEffect(() => {
     if (formData.name || formData.email || formData.message) {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
+      CONFIG.STORAGE.LOCAL.setItem(CONFIG.STORAGE_KEYS.FEEDBACK_DRAFT, JSON.stringify(formData));
     }
   }, [formData]);
 
   const sendToFormspree = async (item: FeedbackItem) => {
-    // We send to Formspree using fetch as requested
-    const response = await fetch(FORMSPREE_ENDPOINT, {
+    // SECURITY: Use externalized endpoint from CONFIG
+    const response = await fetch(CONFIG.FORMSPREE_URL, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -87,8 +84,8 @@ const Feedback: React.FC = () => {
     // 1. Persist to Local Storage immediately as Fallback (Reliability Constraint)
     const updatedPending = [newItem, ...pendingItems];
     setPendingItems(updatedPending);
-    localStorage.setItem(PENDING_KEY, JSON.stringify(updatedPending));
-    localStorage.removeItem(DRAFT_KEY);
+    CONFIG.STORAGE.LOCAL.setItem(CONFIG.STORAGE_KEYS.FEEDBACK_PENDING, JSON.stringify(updatedPending));
+    CONFIG.STORAGE.LOCAL.removeItem(CONFIG.STORAGE_KEYS.FEEDBACK_DRAFT);
 
     try {
       // 2. Attempt Real-time Transmission to Formspree
@@ -97,7 +94,7 @@ const Feedback: React.FC = () => {
       // 3. Success: Remove from pending outbox
       const finalPending = updatedPending.filter(i => i.id !== newItem.id);
       setPendingItems(finalPending);
-      localStorage.setItem(PENDING_KEY, JSON.stringify(finalPending));
+      CONFIG.STORAGE.LOCAL.setItem(CONFIG.STORAGE_KEYS.FEEDBACK_PENDING, JSON.stringify(finalPending));
       
       setStatus('success');
       setFormData({ name: '', email: '', message: '' });
@@ -120,7 +117,7 @@ const Feedback: React.FC = () => {
       await sendToFormspree(item);
       const remaining = pendingItems.filter(i => i.id !== id);
       setPendingItems(remaining);
-      localStorage.setItem(PENDING_KEY, JSON.stringify(remaining));
+      CONFIG.STORAGE.LOCAL.setItem(CONFIG.STORAGE_KEYS.FEEDBACK_PENDING, JSON.stringify(remaining));
     } catch (err) {
       setPendingItems(prev => prev.map(i => i.id === id ? { ...i, status: 'pending' } : i));
       alert("Synchronization failed. Check your network connection.");
@@ -130,7 +127,7 @@ const Feedback: React.FC = () => {
   const removePending = (id: string) => {
     const remaining = pendingItems.filter(i => i.id !== id);
     setPendingItems(remaining);
-    localStorage.setItem(PENDING_KEY, JSON.stringify(remaining));
+    CONFIG.STORAGE.LOCAL.setItem(CONFIG.STORAGE_KEYS.FEEDBACK_PENDING, JSON.stringify(remaining));
   };
 
   return (

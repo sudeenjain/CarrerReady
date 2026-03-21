@@ -3,15 +3,30 @@
  */
 
 /**
- * Sanitizes user input to prevent prompt injection by removing common delimiters.
+ * Robust sanitization to prevent prompt injection.
+ * Uses structural delimiters and filters common attack patterns.
  */
 export const sanitizeAIInput = (text: string): string => {
   if (!text) return '';
+  
   return text
-    .replace(/\[USER_INPUT_START\]/gi, '')
-    .replace(/\[USER_INPUT_END\]/gi, '')
-    .replace(/systemInstruction/gi, '')
-    .replace(/ignore all previous instructions/gi, '[REDACTED]');
+    // Remove structural delimiters used by the system
+    .replace(/\[\[DATA_BLOCK_START\]\]/gi, '')
+    .replace(/\[\[DATA_BLOCK_END\]\]/gi, '')
+    // Filter common injection keywords and phrases
+    .replace(/ignore all (previous|prior) instructions/gi, '[REDACTED]')
+    .replace(/systemInstruction/gi, '[REDACTED]')
+    .replace(/disregard (the)? (above|below)/gi, '[REDACTED]')
+    .replace(/you are now (a|an)/gi, '[REDACTED]')
+    // Limit excessive length to prevent resource exhaustion attacks
+    .substring(0, 10000);
+};
+
+/**
+ * Wraps untrusted user data in secure structural delimiters.
+ */
+export const wrapUntrustedData = (data: string): string => {
+  return `[[DATA_BLOCK_START]]\n${sanitizeAIInput(data)}\n[[DATA_BLOCK_END]]`;
 };
 
 /**
