@@ -17,7 +17,8 @@ import {
   Mic,
   ChevronRight,
   Shield,
-  BrainCircuit
+  BrainCircuit,
+  Loader2
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Landing from './pages/Landing';
