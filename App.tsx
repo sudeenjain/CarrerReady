@@ -36,6 +36,7 @@ import { ResumeScanner } from './components/ResumeScanner';
 import { GitHubSync } from './components/GitHubSync';
 import { INITIAL_USER } from './constants';
 import { UserProfile, Skill, Project } from './types';
+import { auth } from './firebase';
 
 const SidebarContent = ({ user, onOpenUpload, onLogout, closeMobileMenu }: { user: UserProfile, onOpenUpload: () => void, onLogout: () => void, closeMobileMenu?: () => void }) => {
   const location = useLocation();
@@ -205,28 +206,52 @@ const App: React.FC = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isGitHubOpen, setIsGitHubOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // SECURITY: Implementing real-time Firebase auth listener.
   useEffect(() => {
-    const savedUser = localStorage.getItem('career_ready_user');
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser);
-        if (parsed) setUser(parsed);
-      } catch (e) {
-        localStorage.removeItem('career_ready_user');
+    const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
+      if (firebaseUser) {
+        const savedUser = localStorage.getItem('career_ready_user');
+        if (savedUser) {
+          try {
+            const parsed = JSON.parse(savedUser);
+            // Ensure the saved profile matches the authenticated email.
+            if (parsed.email === firebaseUser.email) {
+              setUser(parsed);
+            } else {
+              // Profile mismatch, reset to initial for this user.
+              const newUser = {
+                ...INITIAL_USER,
+                name: firebaseUser.displayName || 'Architect',
+                email: firebaseUser.email || '',
+                isOnboardingComplete: false,
+              };
+              setUser(newUser as AppUser);
+            }
+          } catch (e) {
+            localStorage.removeItem('career_ready_user');
+          }
+        } else {
+          const newUser = {
+            ...INITIAL_USER,
+            name: firebaseUser.displayName || 'Architect',
+            email: firebaseUser.email || '',
+            isOnboardingComplete: false,
+          };
+          setUser(newUser as AppUser);
+        }
+      } else {
+        setUser(null);
       }
-    }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const handleLogin = (loginData: { name: string, email: string }) => {
-    const newUser: AppUser = {
-      ...INITIAL_USER,
-      name: loginData.name,
-      email: loginData.email,
-      isOnboardingComplete: false,
-    };
-    setUser(newUser);
-    localStorage.setItem('career_ready_user', JSON.stringify(newUser));
+    // This is now handled by the onAuthStateChanged listener.
   };
 
   const handleOnboardingComplete = (data: Partial<UserProfile>) => {
@@ -236,7 +261,8 @@ const App: React.FC = () => {
     localStorage.setItem('career_ready_user', JSON.stringify(updatedUser));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await auth.signOut();
     setUser(null);
     localStorage.removeItem('career_ready_user');
     window.location.hash = '/landing';
@@ -275,6 +301,14 @@ const App: React.FC = () => {
       return newUser as AppUser;
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <Router>

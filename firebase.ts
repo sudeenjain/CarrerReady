@@ -2,20 +2,19 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 
+// Using environment variables for Firebase configuration to avoid hardcoding metadata.
 const firebaseConfig = {
-  apiKey: "AIzaSyD636K3W5TQH-3SpdqHmmf_oJ4NLayyPhY",
-  authDomain: "careersnap-1ab4f.firebaseapp.com",
-  projectId: "careersnap-1ab4f",
-  storageBucket: "careersnap-1ab4f.firebasestorage.app",
-  messagingSenderId: "1008016030460",
-  appId: "1:1008016030460:web:b7ecc6a6a6b48588bd3579",
-  measurementId: "G-G50EN9GW0M"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Singleton initialization pattern for robust ESM registration
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Exports with explicit app instance to ensure correct component registration
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 

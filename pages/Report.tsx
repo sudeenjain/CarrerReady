@@ -14,10 +14,20 @@ const Report: React.FC<{ user: UserProfile }> = ({ user }) => {
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
+  // SECURITY: Robust LaTeX escaping to prevent command injection.
+  const safeText = (txt: string) => {
+    if (!txt) return '';
+    return txt
+      .replace(/\\/g, '\\textbackslash{}')
+      .replace(/([&%$#_{}])/g, '\\$1')
+      .replace(/\^/g, '\\textasciicircum{}')
+      .replace(/~/g, '\\textasciitilde{}')
+      .replace(/</g, '\\textless{}')
+      .replace(/>/g, '\\textgreater{}');
+  };
+  
   const generateLaTeX = (profile: UserProfile): string => {
-    const safeText = (txt: string) => txt.replace(/[&%$#_{}~^\\]/g, '\\$&');
-    
-    const skillsList = profile.currentSkills.map(s => s.name).join(', ');
+    const skillsList = profile.currentSkills.map(s => safeText(s.name)).join(', ');
     const projectsList = profile.projects.map(p => `
 \\resumeProjectHeading
     {\\textbf{${safeText(p.name)}} $|$ \\emph{${safeText(p.techStack.join(', '))}}}{}
@@ -113,7 +123,7 @@ const Report: React.FC<{ user: UserProfile }> = ({ user }) => {
 \\section{Technical Skills}
  \\begin{itemize}[leftmargin=0.15in, label={}]
     \\small{\\item{
-     \\textbf{Languages/Frameworks}{: ${safeText(skillsList)}} \\\\
+     \\textbf{Languages/Frameworks}{: ${skillsList}} \\\\
     }}
  \\end{itemize}
 
@@ -232,7 +242,7 @@ const Report: React.FC<{ user: UserProfile }> = ({ user }) => {
             </div>
           </div>
 
-          {/* LaTeX Resume Blueprint - REPLACING AI GENERATION */}
+          {/* LaTeX Resume Blueprint */}
           <div className="bg-slate-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden border border-white/5">
              <div className="absolute top-0 right-0 p-8 opacity-10"><Terminal size={150} /></div>
              <div className="relative z-10 space-y-6">
