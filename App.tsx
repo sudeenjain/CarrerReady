@@ -126,7 +126,7 @@ const SidebarContent = ({ user, onOpenUpload, onLogout, closeMobileMenu }: { use
             </div>
           </div>
           <button 
-            onClick={handleLogout}
+            onClick={onLogout}
             title="Sign Out"
             className="p-2 text-slate-400 hover:text-red-400 transition-colors rounded-xl hover:bg-red-400/10 group/logout shrink-0 active:scale-90"
           >
