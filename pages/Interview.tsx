@@ -18,6 +18,7 @@ import {
   Activity,
   AlertCircle
 } from 'lucide-react';
+import { CONFIG } from '../config';
 
 // Manual base64 decoding implementation
 function decode(base64: string) {
@@ -99,10 +100,10 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
   };
 
   const startInterview = async () => {
-    // SECURITY: Accessing key via import.meta.env.
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    // SECURITY: Accessing key via centralized CONFIG.
+    const apiKey = CONFIG.GEMINI_API_KEY;
     if (!apiKey) {
-      setError("Neural Link Failure: VITE_GEMINI_API_KEY is missing from the environment.");
+      setError("Neural Link Failure: GEMINI_API_KEY is missing from the environment.");
       return;
     }
 

@@ -38,6 +38,7 @@ import { GitHubSync } from './components/GitHubSync';
 import { INITIAL_USER } from './constants';
 import { UserProfile, Skill, Project } from './types';
 import { auth } from './firebase';
+import { CONFIG } from './config';
 
 const SidebarContent = ({ user, onOpenUpload, onLogout, closeMobileMenu }: { user: UserProfile, onOpenUpload: () => void, onLogout: () => void, closeMobileMenu?: () => void }) => {
   const location = useLocation();
@@ -213,7 +214,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
       if (firebaseUser) {
-        const savedUser = localStorage.getItem('career_ready_user');
+        const savedUser = localStorage.getItem(CONFIG.STORAGE_KEYS.USER);
         if (savedUser) {
           try {
             const parsed = JSON.parse(savedUser);
@@ -231,7 +232,7 @@ const App: React.FC = () => {
               setUser(newUser as AppUser);
             }
           } catch (e) {
-            localStorage.removeItem('career_ready_user');
+            localStorage.removeItem(CONFIG.STORAGE_KEYS.USER);
           }
         } else {
           const newUser = {
@@ -259,13 +260,19 @@ const App: React.FC = () => {
     if (!user) return;
     const updatedUser = { ...user, ...data, isOnboardingComplete: true };
     setUser(updatedUser as AppUser);
-    localStorage.setItem('career_ready_user', JSON.stringify(updatedUser));
+    localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(updatedUser));
   };
 
   const handleLogout = async () => {
     await auth.signOut();
     setUser(null);
-    localStorage.removeItem('career_ready_user');
+    
+    // SECURITY: Clear all sensitive local and session storage data
+    Object.values(CONFIG.STORAGE_KEYS).forEach(key => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
+    
     window.location.hash = '/landing';
   };
 
@@ -289,7 +296,7 @@ const App: React.FC = () => {
         projects: Array.from(projectMap.values())
       };
       
-      localStorage.setItem('career_ready_user', JSON.stringify(updated));
+      localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(updated));
       return updated as AppUser;
     });
   };
@@ -298,7 +305,7 @@ const App: React.FC = () => {
     setUser(prev => {
       if (!prev) return null;
       const newUser = { ...prev, ...updated };
-      localStorage.setItem('career_ready_user', JSON.stringify(newUser));
+      localStorage.setItem(CONFIG.STORAGE_KEYS.USER, JSON.stringify(newUser));
       return newUser as AppUser;
     });
   };

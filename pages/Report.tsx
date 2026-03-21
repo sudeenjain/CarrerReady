@@ -5,6 +5,7 @@ import { ReadinessScoreGauge } from '../components/ReadinessScoreGauge';
 import { calculateReadinessScore } from '../utils/scoreCalculator';
 import { FileCheck, Download, Share2, Award, Briefcase, ChevronRight, TrendingUp, CheckCircle2, ShieldCheck, AlertCircle, Info, Zap, Sparkles, FileText, Loader2, Copy, ExternalLink, Terminal } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { escapeLaTeX } from '../utils/security';
 
 const Report: React.FC<{ user: UserProfile }> = ({ user }) => {
   const role = JOB_ROLES.find(r => r.title === user.targetRole) || JOB_ROLES[0];
@@ -14,25 +15,13 @@ const Report: React.FC<{ user: UserProfile }> = ({ user }) => {
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
-  // SECURITY: Robust LaTeX escaping to prevent command injection.
-  const safeText = (txt: string) => {
-    if (!txt) return '';
-    return txt
-      .replace(/\\/g, '\\textbackslash{}')
-      .replace(/([&%$#_{}])/g, '\\$1')
-      .replace(/\^/g, '\\textasciicircum{}')
-      .replace(/~/g, '\\textasciitilde{}')
-      .replace(/</g, '\\textless{}')
-      .replace(/>/g, '\\textgreater{}');
-  };
-  
   const generateLaTeX = (profile: UserProfile): string => {
-    const skillsList = profile.currentSkills.map(s => safeText(s.name)).join(', ');
+    const skillsList = profile.currentSkills.map(s => escapeLaTeX(s.name)).join(', ');
     const projectsList = profile.projects.map(p => `
 \\resumeProjectHeading
-    {\\textbf{${safeText(p.name)}} $|$ \\emph{${safeText(p.techStack.join(', '))}}}{}
+    {\\textbf{${escapeLaTeX(p.name)}} $|$ \\emph{${escapeLaTeX(p.techStack.join(', '))}}}{}
     \\resumeItemListStart
-      \\resumeItem{${safeText(p.description)}}
+      \\resumeItem{${escapeLaTeX(p.description)}}
     \\resumeItemListEnd`).join('');
 
     return `\\documentclass[letterpaper,11pt]{article}
@@ -107,8 +96,8 @@ const Report: React.FC<{ user: UserProfile }> = ({ user }) => {
 \\begin{document}
 
 \\begin{center}
-    \\textbf{\\Huge \\scshape ${safeText(profile.name)}} \\\\ \\vspace{1pt}
-    \\small ${safeText(profile.email)} $|$ 
+    \\textbf{\\Huge \\scshape ${escapeLaTeX(profile.name)}} \\\\ \\vspace{1pt}
+    \\small ${escapeLaTeX(profile.email)} $|$ 
     \\href{https://linkedin.com/in/${profile.linkedinUser || ''}}{\\underline{linkedin.com/in/${profile.linkedinUser || 'profile'}}} $|$
     \\href{https://github.com/${profile.githubUser || ''}}{\\underline{github.com/${profile.githubUser || 'profile'}}}
 \\end{center}
@@ -133,7 +122,7 @@ const Report: React.FC<{ user: UserProfile }> = ({ user }) => {
       {Professional Experience}{City, Country}
       {Relevant Role}{Month Year -- Present}
       \\resumeItemListStart
-        \\resumeItem{Extracted from verified profile: Member of the ${safeText(profile.targetRole)} vertical.}
+        \\resumeItem{Extracted from verified profile: Member of the ${escapeLaTeX(profile.targetRole)} vertical.}
         \\resumeItem{Achieved industry readiness score of ${breakdown.total}\\% via CareerReady AI Audit.}
       \\resumeItemListEnd
   \\resumeSubHeadingListEnd

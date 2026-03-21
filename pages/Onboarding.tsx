@@ -25,13 +25,13 @@ import {
 } from 'lucide-react';
 import { analysisService } from '../analysisService';
 import { GoogleGenAI, Type } from "@google/genai";
+import { CONFIG } from '../config';
+import { sanitizeAIInput } from '../utils/security';
 
 type OnboardingProps = {
   user: UserProfile;
   onComplete: (data: Partial<UserProfile>) => void;
 };
-
-const ONBOARDING_PERSIST_KEY = 'cr_onboarding_temp';
 
 const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
   const [step, setStep] = useState(1);
@@ -50,9 +50,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
   const [discoveredSkills, setDiscoveredSkills] = useState<Skill[]>([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  // Persistence: Save and Load progress
+  // Persistence: Save and Load progress using sessionStorage for security
   useEffect(() => {
-    const saved = localStorage.getItem(ONBOARDING_PERSIST_KEY);
+    const saved = sessionStorage.getItem(CONFIG.STORAGE_KEYS.ONBOARDING_TEMP);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -61,13 +61,13 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
         setSubStep(parsed.subStep || 'selection');
         setDiscoveredSkills(parsed.skills || []);
       } catch (e) {
-        localStorage.removeItem(ONBOARDING_PERSIST_KEY);
+        sessionStorage.removeItem(CONFIG.STORAGE_KEYS.ONBOARDING_TEMP);
       }
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(ONBOARDING_PERSIST_KEY, JSON.stringify({
+    sessionStorage.setItem(CONFIG.STORAGE_KEYS.ONBOARDING_TEMP, JSON.stringify({
       formData, step, subStep, skills: discoveredSkills
     }));
   }, [formData, step, subStep, discoveredSkills]);
@@ -75,7 +75,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
   const handleNext = () => {
     if (step < 3) setStep(step + 1);
     else {
-      localStorage.removeItem(ONBOARDING_PERSIST_KEY);
+      sessionStorage.removeItem(CONFIG.STORAGE_KEYS.ONBOARDING_TEMP);
       onComplete({
         name: formData.name,
         targetRole: formData.targetRole,
@@ -128,9 +128,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
         reader.readAsDataURL(selectedFile);
       });
 
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      // SECURITY: Using centralized CONFIG for API key
+      const ai = new GoogleGenAI({ apiKey: CONFIG.GEMINI_API_KEY });
       const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-1.5-flash",
         contents: [
           {
             inlineData: {
@@ -140,11 +141,11 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
           },
           {
             text: `SYSTEM: You are a high-level elite resume verification engine for CareerReady AI.
-            User's Name: "${formData.name}"
+            User's Name: "${sanitizeAIInput(formData.name)}"
             
             RIGOROUS VERIFICATION PROTOCOL:
             1. DOCUMENT CLASSIFICATION: Is this a professional CV/Resume?
-            2. IDENTITY SYNC: Does the document belong to "${formData.name}"?
+            2. IDENTITY SYNC: Does the document belong to "${sanitizeAIInput(formData.name)}"?
             3. STRUCTURAL AUDIT: Verify Education, Experience, Technical Skills, and Projects.
             
             Return a JSON object with extractedSkills and any errors.`
