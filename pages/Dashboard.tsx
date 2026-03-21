@@ -30,7 +30,7 @@ const Dashboard: React.FC<{
     <div className="space-y-12 animate-in fade-in slide-up duration-1000">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Mastery Overview */}
-        <div className="lg:col-span-2 bg-[#0f172a]/60 backdrop-blur-xl rounded-[40px] p-10 border border-white/10 shadow-2xl relative overflow-hidden group">
+        <div className="lg:col-span-2 bg-[#0f172a]/60 backdrop-blur-xl rounded-[40px] p-10 border border-white/10 shadow-2xl relative overflow-hidden group interactive-card">
           <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:scale-110 transition-transform pointer-events-none">
             <Sparkles size={180} />
           </div>
@@ -52,11 +52,11 @@ const Dashboard: React.FC<{
               </div>
               
               <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                <div className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500/20 text-indigo-400 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-indigo-500/30">
+                <div className="flex items-center gap-2 px-5 py-2.5 bg-indigo-500/20 text-indigo-400 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-indigo-500/30 hover:bg-indigo-500/30 transition-colors cursor-default">
                   <Flame size={14} />
                   <span>{user.streak} Day Streak</span>
                 </div>
-                <div className="flex items-center gap-2 px-5 py-2.5 bg-white/10 text-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/10">
+                <div className="flex items-center gap-2 px-5 py-2.5 bg-white/10 text-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/10 hover:bg-white/20 transition-colors cursor-default">
                   <Star size={14} className="text-amber-400 fill-amber-400" />
                   <span>Level {Math.floor(breakdown.total/10)} Seeker</span>
                 </div>
@@ -66,7 +66,7 @@ const Dashboard: React.FC<{
         </div>
 
         {/* Global XP Stats */}
-        <div className="bg-[#020617] rounded-[32px] p-8 text-white shadow-2xl border border-white/10 relative overflow-hidden group">
+        <div className="bg-[#020617] rounded-[32px] p-8 text-white shadow-2xl border border-white/10 relative overflow-hidden group interactive-card">
           <div className="absolute -bottom-4 -right-4 opacity-10 group-hover:scale-110 transition-transform">
              <Zap size={100} />
           </div>
@@ -87,7 +87,7 @@ const Dashboard: React.FC<{
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Skill Coverage Visualization */}
-        <div className="lg:col-span-2 bg-[#0f172a]/60 backdrop-blur-xl rounded-[40px] p-8 border border-white/10 shadow-2xl">
+        <div className="lg:col-span-2 bg-[#0f172a]/60 backdrop-blur-xl rounded-[40px] p-8 border border-white/10 shadow-2xl interactive-card">
           <div className="flex items-center justify-between mb-6 px-2">
             <div>
               <h3 className="text-xl font-black text-white tracking-tight">Skill Coverage</h3>
@@ -117,7 +117,7 @@ const Dashboard: React.FC<{
         <div className="space-y-6">
           <button 
             onClick={onOpenGitHub}
-            className="bg-[#0f172a]/40 backdrop-blur-md rounded-[32px] p-6 border border-white/10 hover:border-indigo-500/50 transition-all group text-left w-full"
+            className="bg-[#0f172a]/40 backdrop-blur-md rounded-[32px] p-6 border border-white/10 hover:border-indigo-500/50 transition-all group text-left w-full interactive-card"
           >
             <h4 className="font-black text-white text-[10px] uppercase tracking-widest mb-4 ml-1 flex items-center gap-2">
               <Github size={14} className="group-hover:rotate-12 transition-transform" /> Evidence Pulse
@@ -132,7 +132,7 @@ const Dashboard: React.FC<{
             </div>
           </button>
 
-          <Link to="/intelligence" className="bg-[#0f172a]/40 backdrop-blur-md rounded-[32px] p-6 border border-white/10 hover:border-indigo-500/50 transition-all group block">
+          <Link to="/intelligence" className="bg-[#0f172a]/40 backdrop-blur-md rounded-[32px] p-6 border border-white/10 hover:border-indigo-500/50 transition-all group block interactive-card">
             <h4 className="font-black text-indigo-400 text-[10px] uppercase tracking-widest mb-4 ml-1 flex items-center gap-2">
               <BrainCircuit size={14} /> Strategic Intelligence
             </h4>
@@ -146,7 +146,7 @@ const Dashboard: React.FC<{
             </div>
           </Link>
 
-          <div className="bg-indigo-600 rounded-[32px] p-6 shadow-xl shadow-indigo-600/20 relative overflow-hidden group">
+          <div className="bg-indigo-600 rounded-[32px] p-6 shadow-xl shadow-indigo-600/20 relative overflow-hidden group interactive-card">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform">
                <Sparkles size={60} />
             </div>
@@ -166,7 +166,7 @@ const Dashboard: React.FC<{
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {user.currentSkills.slice(0, 6).map((skill, idx) => (
-              <div key={idx} className="p-6 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-between group hover:bg-white/10 transition-all">
+              <div key={idx} className="p-6 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-between group hover:bg-white/10 transition-all interactive-card">
                 <div className="flex items-center gap-4">
                   <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
                   <div>
@@ -187,7 +187,7 @@ const Dashboard: React.FC<{
           <h4 className="text-2xl font-black text-white tracking-tighter px-2">Next Unlocks</h4>
           <div className="space-y-4">
             {role.requirements.filter(req => !user.currentSkills.some(s => s.name.toLowerCase() === req.skillName.toLowerCase())).slice(0, 4).map((req, i) => (
-              <Link key={i} to="/roadmap" className="flex items-center gap-5 p-5 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all group">
+              <Link key={i} to="/roadmap" className="flex items-center gap-5 p-5 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all group interactive-card">
                 <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-slate-400 group-hover:text-indigo-400 transition-colors">
                   <Sparkles size={18} />
                 </div>

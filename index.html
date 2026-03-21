@@ -28,11 +28,16 @@
           animation: {
             'shimmer': 'shimmer 2s infinite linear',
             'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glow': 'glow 3s ease-in-out infinite alternate',
           },
           keyframes: {
             shimmer: {
               '0%': { transform: 'translateX(-100%)' },
               '100%': { transform: 'translateX(100%)' }
+            },
+            glow: {
+              '0%': { boxShadow: '0 0 5px rgba(79, 70, 229, 0.2)' },
+              '100%': { boxShadow: '0 0 20px rgba(79, 70, 229, 0.4)' }
             }
           }
         }
@@ -41,16 +46,18 @@
   </script>
   <style>
     :root {
-      --primary: #3b82f6;
-      --secondary: #2563eb;
+      --primary: #4f46e5;
+      --secondary: #4338ca;
+      --bg-dark: #020617;
     }
     
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #000000;
+      background-color: var(--bg-dark);
       color: #f1f5f9;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
+      scroll-behavior: smooth;
     }
 
     .gradient-bg {
@@ -58,47 +65,64 @@
     }
 
     .gradient-text {
-      background: linear-gradient(135deg, #fff 0%, #3b82f6 100%);
+      background: linear-gradient(135deg, #fff 0%, #4f46e5 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    .glass-cyber {
-      background: rgba(2, 6, 23, 0.7);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+    .glass-prestige {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .nav-blur {
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(2, 6, 23, 0.8);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(59, 130, 246, 0.2);
+      background: rgba(79, 70, 229, 0.2);
       border-radius: 10px;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
     input, textarea, select {
-      background-color: rgba(255, 255, 255, 0.02) !important;
-      border: 1px solid rgba(255, 255, 255, 0.05) !important;
+      background-color: rgba(255, 255, 255, 0.03) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: #ffffff !important;
       outline: none !important;
+      transition: all 0.3s ease !important;
     }
 
     input:focus, textarea:focus {
       border-color: var(--primary) !important;
-      background-color: rgba(255, 255, 255, 0.04) !important;
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      box-shadow: 0 0 15px rgba(79, 70, 229, 0.1) !important;
+    }
+
+    .interactive-card {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .interactive-card:hover {
+      transform: translateY(-4px) scale(1.01);
+      border-color: rgba(79, 70, 229, 0.3);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(79, 70, 229, 0.1);
+    }
+
+    ::selection {
+      background: rgba(79, 70, 229, 0.3);
+      color: white;
     }
   </style>
 </head>
-<body class="selection:bg-blue-500/30">
+<body class="selection:bg-indigo-500/30">
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
