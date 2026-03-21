@@ -24,9 +24,7 @@ import {
   Link as LinkIcon
 } from 'lucide-react';
 import { analysisService } from '../analysisService';
-import { GoogleGenAI, Type } from "@google/genai";
 import { CONFIG } from '../config';
-import { sanitizeAIInput } from '../utils/security';
 
 type OnboardingProps = {
   user: UserProfile;
@@ -50,7 +48,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
   const [discoveredSkills, setDiscoveredSkills] = useState<Skill[]>([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  // Persistence: Save and Load progress using sessionStorage for security
   useEffect(() => {
     const saved = sessionStorage.getItem(CONFIG.STORAGE_KEYS.ONBOARDING_TEMP);
     if (saved) {
@@ -122,80 +119,20 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
     setValidationErrors([]);
     
     try {
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string).split(',')[1]);
-        reader.readAsDataURL(selectedFile);
-      });
-
-      // SECURITY: Using centralized CONFIG for API key
-      const ai = new GoogleGenAI({ apiKey: CONFIG.GEMINI_API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-1.5-flash",
-        contents: [
-          {
-            inlineData: {
-              data: base64,
-              mimeType: selectedFile.type || "application/pdf"
-            }
-          },
-          {
-            text: `SYSTEM: You are a high-level elite resume verification engine for CareerReady AI.
-            User's Name: "${sanitizeAIInput(formData.name)}"
-            
-            RIGOROUS VERIFICATION PROTOCOL:
-            1. DOCUMENT CLASSIFICATION: Is this a professional CV/Resume?
-            2. IDENTITY SYNC: Does the document belong to "${sanitizeAIInput(formData.name)}"?
-            3. STRUCTURAL AUDIT: Verify Education, Experience, Technical Skills, and Projects.
-            
-            Return a JSON object with extractedSkills and any errors.`
-          }
-        ],
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              isValidResume: { type: Type.BOOLEAN },
-              nameMatch: { type: Type.BOOLEAN },
-              sectionsFound: {
-                type: Type.OBJECT,
-                properties: {
-                  education: { type: Type.BOOLEAN },
-                  experience: { type: Type.BOOLEAN },
-                  skills: { type: Type.BOOLEAN },
-                  projects: { type: Type.BOOLEAN }
-                }
-              },
-              errors: { type: Type.ARRAY, items: { type: Type.STRING } },
-              extractedSkills: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    name: { type: Type.STRING },
-                    level: { type: Type.STRING, enum: ["Basic", "Intermediate", "Advanced"] },
-                    category: { type: Type.STRING },
-                    isSoftSkill: { type: Type.BOOLEAN }
-                  }
-                }
-              }
-            }
-          }
-        }
-      });
-
-      const audit = JSON.parse(response.text || '{}');
-      if (audit.errors?.length > 0) {
-        setValidationErrors(audit.errors);
+      // We read the file as text for the analysis service
+      const text = await selectedFile.text();
+      const result = await analysisService.extractSkillsFromResume(text);
+      
+      if (result.skills.length === 0) {
+        setValidationErrors(["System Error: No skills could be extracted from the document stream."]);
         setIsAnalyzing(false);
         return;
       }
 
-      setDiscoveredSkills(audit.extractedSkills || []);
+      setDiscoveredSkills(result.skills || []);
       setSubStep('verify');
-    } catch (err) {
-      setValidationErrors(["System Error: AI Verification Engine failed to process the document stream."]);
+    } catch (err: any) {
+      setValidationErrors([err.message || "System Error: AI Verification Engine failed to process the document stream."]);
     } finally {
       setIsAnalyzing(false);
     }

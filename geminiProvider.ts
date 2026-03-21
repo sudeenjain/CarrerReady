@@ -7,7 +7,14 @@ import { sanitizeAIInput } from './utils/security';
 export class GeminiProvider implements AnalysisProvider {
   name = "Gemini AI Provider";
 
+  private validateKey() {
+    if (!CONFIG.GEMINI_API_KEY) {
+      throw new Error("SECURITY_CONFIG_REQUIRED: Gemini API Key is missing. Please configure your environment variables securely.");
+    }
+  }
+
   private getClient() {
+    this.validateKey();
     return new GoogleGenAI({ apiKey: CONFIG.GEMINI_API_KEY });
   }
 

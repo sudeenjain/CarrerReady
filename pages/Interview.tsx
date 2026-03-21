@@ -100,10 +100,9 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
   };
 
   const startInterview = async () => {
-    // SECURITY: Accessing key via centralized CONFIG.
     const apiKey = CONFIG.GEMINI_API_KEY;
     if (!apiKey) {
-      setError("Neural Link Failure: GEMINI_API_KEY is missing from the environment.");
+      setError("Neural Link Failure: Security Configuration Required. The Gemini API Key is missing from the environment.");
       return;
     }
 
@@ -130,7 +129,6 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
           speechConfig: { 
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } } 
           },
-          // SECURITY: Using systemInstruction to define constraints and persona.
           systemInstruction: `You are an elite technical interviewer at a Tier-1 tech company. 
           Interviewing: ${user.name} for ${user.targetRole}. 
           
