@@ -19,7 +19,9 @@ import {
   FileUp,
   X,
   ShieldCheck,
-  Search
+  Search,
+  Globe,
+  Link as LinkIcon
 } from 'lucide-react';
 import { analysisService } from '../analysisService';
 import { GoogleGenAI, Type } from "@google/genai";
@@ -201,15 +203,31 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
   const handleGithubSync = async () => {
     if (!formData.githubUser) return;
     setIsAnalyzing(true);
+    setValidationErrors([]);
     try {
       const resp = await fetch(`https://api.github.com/users/${formData.githubUser}/repos?sort=updated&per_page=30`);
       if (!resp.ok) throw new Error("GitHub user not found");
       const repos = await resp.json();
       const result = await analysisService.analyzeGitHubRepos(repos);
-      setDiscoveredSkills(prev => [...prev, ...result.skills]);
+      setDiscoveredSkills(result.skills || []);
       setSubStep('verify');
     } catch (err: any) {
       setValidationErrors([err.message || "Failed to sync GitHub"]);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleLinkedinSync = async () => {
+    if (!formData.linkedinProfile) return;
+    setIsAnalyzing(true);
+    setValidationErrors([]);
+    try {
+      const result = await analysisService.analyzeLinkedInProfile(formData.linkedinProfile);
+      setDiscoveredSkills(result.skills || []);
+      setSubStep('verify');
+    } catch (err: any) {
+      setValidationErrors([err.message || "Failed to sync LinkedIn bio"]);
     } finally {
       setIsAnalyzing(false);
     }
@@ -360,6 +378,79 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
                 >
                   {isAnalyzing ? <Loader2 className="animate-spin" size={18} /> : <ShieldCheck size={18} />}
                   {isAnalyzing ? 'Strict Structural Audit...' : 'Authorize Integrity Scan'}
+                </button>
+              </div>
+            )}
+
+            {subStep === 'github' && (
+              <div className="space-y-8 animate-in fade-in">
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-white tracking-tight">GitHub Evidence Pulse</h3>
+                  <p className="text-slate-400 text-sm font-medium">Enter your username to verify technical expertise via code history.</p>
+                </div>
+                <div className="relative group">
+                   <Github className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-white transition-colors" />
+                   <input 
+                     type="text" 
+                     className="w-full pl-14 pr-6 py-5 rounded-[24px] bg-white/5 border border-white/10 outline-none font-bold text-white focus:border-white/30 transition-all" 
+                     value={formData.githubUser} 
+                     onChange={(e) => setFormData({...formData, githubUser: e.target.value})} 
+                     placeholder="GitHub Username (e.g. torvalds)" 
+                     autoFocus
+                   />
+                </div>
+
+                {validationErrors.length > 0 && (
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-[9px] font-black uppercase text-red-400 tracking-widest flex items-start gap-3 text-left">
+                    <AlertTriangle size={16} className="shrink-0" />
+                    <span>{validationErrors[0]}</span>
+                  </div>
+                )}
+
+                <button 
+                  type="button"
+                  onClick={handleGithubSync} 
+                  disabled={isAnalyzing || !formData.githubUser} 
+                  className="w-full py-5 bg-white text-slate-900 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl disabled:opacity-40 flex items-center justify-center gap-3 transition-all"
+                >
+                  {isAnalyzing ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
+                  {isAnalyzing ? 'Scanning Repositories...' : 'Initiate GitHub Sync'}
+                </button>
+              </div>
+            )}
+
+            {subStep === 'linkedin' && (
+              <div className="space-y-8 animate-in fade-in">
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-white tracking-tight">LinkedIn Bio Sync</h3>
+                  <p className="text-slate-400 text-sm font-medium">Paste your LinkedIn bio or professional summary for signal extraction.</p>
+                </div>
+                <div className="relative group">
+                   <Linkedin className="absolute left-5 top-6 text-slate-600 group-focus-within:text-blue-400 transition-colors" />
+                   <textarea 
+                     className="w-full pl-14 pr-6 py-5 rounded-[24px] bg-white/5 border border-white/10 outline-none font-bold text-white focus:border-blue-500/50 transition-all min-h-[200px] resize-none custom-scrollbar" 
+                     value={formData.linkedinProfile} 
+                     onChange={(e) => setFormData({...formData, linkedinProfile: e.target.value})} 
+                     placeholder="Paste your professional summary here..." 
+                     autoFocus
+                   />
+                </div>
+
+                {validationErrors.length > 0 && (
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-[9px] font-black uppercase text-red-400 tracking-widest flex items-start gap-3 text-left">
+                    <AlertTriangle size={16} className="shrink-0" />
+                    <span>{validationErrors[0]}</span>
+                  </div>
+                )}
+
+                <button 
+                  type="button"
+                  onClick={handleLinkedinSync} 
+                  disabled={isAnalyzing || !formData.linkedinProfile} 
+                  className="w-full py-5 bg-blue-600 text-white rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl disabled:opacity-40 flex items-center justify-center gap-3 transition-all"
+                >
+                  {isAnalyzing ? <Loader2 className="animate-spin" size={18} /> : <Globe size={18} />}
+                  {isAnalyzing ? 'Extracting Signal...' : 'Sync Professional Bio'}
                 </button>
               </div>
             )}
