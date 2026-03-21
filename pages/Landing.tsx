@@ -24,7 +24,6 @@ const Landing: React.FC<{ onLogin: (user: any) => void }> = ({ onLogin }) => {
   // Handle scrolling after the DOM view might have changed (e.g. closing login)
   useEffect(() => {
     if (!showLogin && pendingScrollId) {
-      // Delay slightly to allow re-render and animations to settle
       const timer = setTimeout(() => {
         const el = document.getElementById(pendingScrollId);
         if (el) {
@@ -110,6 +109,7 @@ const Landing: React.FC<{ onLogin: (user: any) => void }> = ({ onLogin }) => {
 
   return (
     <div className="bg-[#020617] min-h-screen relative overflow-x-hidden font-sans selection:bg-indigo-500/30">
+      {/* x.ai inspired radial glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1000px] bg-[radial-gradient(circle_at_50%_0%,rgba(79,70,229,0.12)_0%,transparent_70%)] pointer-events-none"></div>
       
       <div className="max-w-7xl mx-auto px-6 relative z-10">
