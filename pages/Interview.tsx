@@ -22,13 +22,18 @@ import { analysisService } from '../analysisService';
 
 // Manual base64 decoding implementation
 function decode(base64: string) {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
+  try {
+    const binaryString = atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+  } catch (e) {
+    console.error("Base64 decoding failed", e);
+    return new Uint8Array(0);
   }
-  return bytes;
 }
 
 // Manual base64 encoding implementation
@@ -78,6 +83,7 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
   const segmentIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const nextStartTimeRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const inputContextRef = useRef<AudioContext | null>(null);
   const sessionRef = useRef<any>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
@@ -108,10 +114,15 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
     currentOutputRef.current = '';
     setSpeechTimer(0);
     
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-    const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-    
     try {
+      // Initialize Audio Contexts
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+      inputContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+      
+      // Resume contexts (required by browsers after user gesture)
+      await audioContextRef.current.resume();
+      await inputContextRef.current.resume();
+
       streamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
       
       const sessionPromise = analysisService.connectToInterview({
@@ -150,24 +161,26 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
               });
             }, 1000);
 
-            const source = inputCtx.createMediaStreamSource(streamRef.current!);
-            const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
-            
-            scriptProcessor.onaudioprocess = (e) => {
-              if (speechTimer >= 45) return;
+            if (inputContextRef.current && streamRef.current) {
+              const source = inputContextRef.current.createMediaStreamSource(streamRef.current);
+              const scriptProcessor = inputContextRef.current.createScriptProcessor(4096, 1, 1);
               
-              const inputData = e.inputBuffer.getChannelData(0);
-              const int16 = new Int16Array(inputData.length);
-              for (let i = 0; i < inputData.length; i++) {
-                int16[i] = inputData[i] * 32768;
-              }
-              const pcmBlobData = encode(new Uint8Array(int16.buffer));
-              sessionPromise.then(s => s.sendRealtimeInput({ 
-                media: { data: pcmBlobData, mimeType: 'audio/pcm;rate=16000' } 
-              }));
-            };
-            source.connect(scriptProcessor);
-            scriptProcessor.connect(inputCtx.destination);
+              scriptProcessor.onaudioprocess = (e) => {
+                if (speechTimer >= 45 || !sessionRef.current) return;
+                
+                const inputData = e.inputBuffer.getChannelData(0);
+                const int16 = new Int16Array(inputData.length);
+                for (let i = 0; i < inputData.length; i++) {
+                  int16[i] = inputData[i] * 32768;
+                }
+                const pcmBlobData = encode(new Uint8Array(int16.buffer));
+                sessionRef.current.sendRealtimeInput({ 
+                  media: { data: pcmBlobData, mimeType: 'audio/pcm;rate=16000' } 
+                });
+              };
+              source.connect(scriptProcessor);
+              scriptProcessor.connect(inputContextRef.current.destination);
+            }
           },
           onmessage: async (msg: LiveServerMessage) => {
             const base64Audio = msg.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
@@ -206,7 +219,9 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
             }
 
             if (msg.serverContent?.interrupted) {
-              sourcesRef.current.forEach(s => s.stop());
+              sourcesRef.current.forEach(s => {
+                try { s.stop(); } catch(e) {}
+              });
               sourcesRef.current.clear();
               nextStartTimeRef.current = 0;
             }
@@ -224,6 +239,7 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
       console.error(err);
       setIsConnecting(false);
       setError(err.message || "Neural Link Failure: Could not establish connection.");
+      stopInterview();
     }
   };
 
@@ -231,9 +247,26 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
     setIsActive(false);
     setIsConnecting(false);
     streamRef.current?.getTracks().forEach(t => t.stop());
-    sourcesRef.current.forEach(s => s.stop());
+    sourcesRef.current.forEach(s => {
+      try { s.stop(); } catch(e) {}
+    });
     sourcesRef.current.clear();
-    sessionRef.current?.close();
+    
+    if (sessionRef.current) {
+      try { sessionRef.current.close(); } catch(e) {}
+      sessionRef.current = null;
+    }
+
+    if (audioContextRef.current) {
+      try { audioContextRef.current.close(); } catch(e) {}
+      audioContextRef.current = null;
+    }
+
+    if (inputContextRef.current) {
+      try { inputContextRef.current.close(); } catch(e) {}
+      inputContextRef.current = null;
+    }
+
     if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
     if (segmentIntervalRef.current) clearInterval(segmentIntervalRef.current);
   };

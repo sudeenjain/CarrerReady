@@ -9,7 +9,6 @@ export class GeminiProvider implements AnalysisProvider {
 
   private validateKey() {
     if (!CONFIG.GEMINI_API_KEY) {
-      // In a real production app, this would call a backend proxy instead of failing.
       throw new Error("SECURITY_GATE_ACTIVE: Direct client-side API access is disabled for security. Please route requests through a secure backend proxy.");
     }
   }
@@ -38,7 +37,24 @@ export class GeminiProvider implements AnalysisProvider {
 
   async connectToInterview(config: any) {
     const ai = this.getClient();
-    return ai.live.connect(config);
+    
+    // The SDK's LiveCallbacks type includes message, close, and error, but not open.
+    // We trigger onopen manually once the connection promise resolves.
+    const session = await ai.live.connect({
+      model: config.model || 'gemini-2.0-flash-exp',
+      config: config.config,
+      callbacks: {
+        message: config.callbacks?.onmessage,
+        close: config.callbacks?.onclose,
+        error: config.callbacks?.onerror,
+      }
+    });
+
+    if (config.callbacks?.onopen) {
+      config.callbacks.onopen();
+    }
+
+    return session;
   }
 
   async extractSkillsFromResume(text: string) {
