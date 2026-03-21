@@ -1,4 +1,3 @@
-
 import { AnalysisProvider } from './analysisProvider';
 import { Skill, SkillLevel, Project, ChatMessage, RoadmapStep } from "./types";
 
@@ -16,6 +15,10 @@ const SKILL_KEYWORDS = {
 
 export class RuleBasedProvider implements AnalysisProvider {
   name = "Local Rule-Based Engine";
+
+  async connectToInterview() {
+    throw new Error("Neural Link Unavailable: Real-time multimodal interviews require an active Gemini API connection. Please configure your security registry.");
+  }
 
   async extractSkillsFromResume(text: string) {
     const found: Skill[] = [];
@@ -84,7 +87,6 @@ export class RuleBasedProvider implements AnalysisProvider {
     }];
   }
 
-  // Updated method signature to match AnalysisProvider interface
   async regenerateStep(step: RoadmapStep, targetRole: string): Promise<RoadmapStep> {
     return { ...step, primaryGoal: step.primaryGoal + " (Regenerated for " + targetRole + ")" };
   }

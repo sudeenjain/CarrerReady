@@ -27,6 +27,11 @@ export class GeminiProvider implements AnalysisProvider {
     ];
   }
 
+  async connectToInterview(config: any) {
+    const ai = this.getClient();
+    return ai.live.connect(config);
+  }
+
   async extractSkillsFromResume(text: string) {
     const ai = this.getClient();
     const sanitizedText = sanitizeAIInput(text);

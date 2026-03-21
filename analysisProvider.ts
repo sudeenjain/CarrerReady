@@ -1,4 +1,3 @@
-
 import { Skill, Project, RoadmapStep, ChatMessage } from './types';
 
 export interface AnalysisProvider {
@@ -21,4 +20,7 @@ export interface AnalysisProvider {
   generateCoverLetter(resumeSummary: string, jobTitle: string, companyName: string): Promise<string>;
   
   getWinningStrategy(jobTitle: string, company: string, userSkills: string[]): Promise<string>;
+
+  // New: Support for real-time multimodal interview sessions
+  connectToInterview(config: any): Promise<any>;
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
+import { Modality, LiveServerMessage } from '@google/genai';
 import { UserProfile } from '../types';
 import { 
   Mic, 
@@ -18,7 +18,7 @@ import {
   Activity,
   AlertCircle
 } from 'lucide-react';
-import { CONFIG } from '../config';
+import { analysisService } from '../analysisService';
 
 // Manual base64 decoding implementation
 function decode(base64: string) {
@@ -100,12 +100,6 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
   };
 
   const startInterview = async () => {
-    const apiKey = CONFIG.GEMINI_API_KEY;
-    if (!apiKey) {
-      setError("Neural Link Failure: Security Configuration Required. The Gemini API Key is missing from the environment.");
-      return;
-    }
-
     setIsConnecting(true);
     setError(null);
     setCurrentInput('');
@@ -114,15 +108,13 @@ const Interview: React.FC<{ user: UserProfile }> = ({ user }) => {
     currentOutputRef.current = '';
     setSpeechTimer(0);
     
-    const ai = new GoogleGenAI({ apiKey });
-    
     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
     
     try {
       streamRef.current = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      const sessionPromise = ai.live.connect({
+      const sessionPromise = analysisService.connectToInterview({
         model: 'gemini-2.0-flash-exp',
         config: {
           responseModalities: [Modality.AUDIO],

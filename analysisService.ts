@@ -1,4 +1,3 @@
-
 import { GeminiProvider } from './geminiProvider';
 import { RuleBasedProvider } from './ruleBasedProvider';
 import { AnalysisProvider } from './analysisProvider';
@@ -20,6 +19,10 @@ class AnalysisService {
       console.warn(`Primary Provider (${this.primary.name}) failed. Falling back to ${this.fallback.name}.`, err);
       return await action(this.fallback);
     }
+  }
+
+  async connectToInterview(config: any) {
+    return this.execute(p => p.connectToInterview(config));
   }
 
   async extractSkillsFromResume(text: string) {
