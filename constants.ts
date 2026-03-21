@@ -1,4 +1,3 @@
-
 import { SkillLevel, SkillPriority, JobRole, JobOpening, UserProfile } from './types';
 
 export const SAMPLE_JOBS: JobOpening[] = [
@@ -324,194 +323,77 @@ export const SAMPLE_JOBS: JobOpening[] = [
     tier: 'Skill Gap'
   },
 
-  // --- ADDITIONAL TIER-1 ENTRIES ---
+  // --- NEW BENCHMARK JOBS ---
   {
-    id: 'uber-1',
-    title: 'Real-time Systems Engineer',
-    company: 'Uber',
-    location: 'Hyderabad',
-    salaryRange: '₹45L - ₹70L',
+    id: 'meta-1',
+    title: 'Full Stack Engineer',
+    company: 'Meta',
+    location: 'Remote',
+    salaryRange: '₹45L - ₹85L',
     minSalary: 45,
-    rating: 4.3,
-    requiredSkills: [
-      { name: 'System Design', minLevel: SkillLevel.ADVANCED },
-      { name: 'Node.js', minLevel: SkillLevel.ADVANCED }
-    ],
-    applyUrl: 'https://uber.com/careers',
-    source: 'Indeed',
-    postedDate: '2 days ago',
-    tier: 'Stretch'
-  },
-  {
-    id: 'netflix-1',
-    title: 'Streaming Infrastructure Engineer',
-    company: 'Netflix',
-    location: 'Remote',
-    salaryRange: '₹80L - ₹1.5Cr',
-    minSalary: 80,
-    rating: 4.9,
-    requiredSkills: [
-      { name: 'System Design', minLevel: SkillLevel.ADVANCED },
-      { name: 'Node.js', minLevel: SkillLevel.ADVANCED }
-    ],
-    applyUrl: 'https://netflix.com/jobs',
-    source: 'Indeed',
-    postedDate: '2 weeks ago',
-    tier: 'Stretch'
-  },
-  {
-    id: 'flipkart-1',
-    title: 'Supply Chain Engineer',
-    company: 'Flipkart',
-    location: 'Bangalore',
-    salaryRange: '₹22L - ₹36L',
-    minSalary: 22,
-    rating: 4.2,
-    requiredSkills: [
-      { name: 'Problem Solving', minLevel: SkillLevel.ADVANCED },
-      { name: 'SQL', minLevel: SkillLevel.INTERMEDIATE }
-    ],
-    applyUrl: 'https://flipkart.com/careers',
-    source: 'Company',
-    postedDate: 'Today',
-    tier: 'Best Match'
-  },
-  {
-    id: 'meesho-1',
-    title: 'Growth Product Manager',
-    company: 'Meesho',
-    location: 'Remote',
-    salaryRange: '₹24L - ₹40L',
-    minSalary: 24,
-    rating: 4.1,
-    requiredSkills: [
-      { name: 'Problem Solving', minLevel: SkillLevel.ADVANCED },
-      { name: 'Communication', minLevel: SkillLevel.ADVANCED }
-    ],
-    applyUrl: 'https://meesho.com/careers',
-    source: 'LinkedIn',
-    postedDate: '3 days ago',
-    tier: 'Best Match'
-  },
-  {
-    id: 'freshworks-1',
-    title: 'Customer Success Dev',
-    company: 'Freshworks',
-    location: 'Chennai',
-    salaryRange: '₹14L - ₹22L',
-    minSalary: 14,
-    rating: 4.4,
-    requiredSkills: [
-      { name: 'JavaScript', minLevel: SkillLevel.ADVANCED },
-      { name: 'Communication', minLevel: SkillLevel.ADVANCED }
-    ],
-    applyUrl: 'https://freshworks.com/careers',
-    source: 'Company',
-    postedDate: '1 week ago',
-    tier: 'Best Match'
-  },
-  {
-    id: 'stripe-1',
-    title: 'Payments Engineer',
-    company: 'Stripe',
-    location: 'Remote (Global)',
-    salaryRange: '₹70L - ₹1.2Cr',
-    minSalary: 70,
-    rating: 4.9,
-    requiredSkills: [
-      { name: 'Node.js', minLevel: SkillLevel.ADVANCED },
-      { name: 'System Design', minLevel: SkillLevel.ADVANCED },
-      { name: 'TypeScript', minLevel: SkillLevel.ADVANCED }
-    ],
-    applyUrl: 'https://stripe.com/jobs',
-    source: 'Company',
-    postedDate: 'Today',
-    tier: 'Stretch'
-  },
-  {
-    id: 'airtel-1',
-    title: 'Network Optimization Engineer',
-    company: 'Airtel Xstream',
-    location: 'Gurgaon',
-    salaryRange: '₹18L - ₹30L',
-    minSalary: 18,
-    rating: 4.0,
-    requiredSkills: [
-      { name: 'Problem Solving', minLevel: SkillLevel.ADVANCED },
-      { name: 'Teamwork', minLevel: SkillLevel.ADVANCED }
-    ],
-    applyUrl: 'https://airtel.in/careers',
-    source: 'Indeed',
-    postedDate: '4 days ago',
-    tier: 'Best Match'
-  },
-  {
-    id: 'adobe-1',
-    title: 'Experience Designer',
-    company: 'Adobe',
-    location: 'Noida',
-    salaryRange: '₹22L - ₹38L',
-    minSalary: 22,
     rating: 4.7,
     requiredSkills: [
-      { name: 'HTML/CSS', minLevel: SkillLevel.ADVANCED },
-      { name: 'JavaScript', minLevel: SkillLevel.INTERMEDIATE }
+      { name: 'React', minLevel: SkillLevel.ADVANCED },
+      { name: 'Node.js', minLevel: SkillLevel.INTERMEDIATE },
+      { name: 'SQL', minLevel: SkillLevel.INTERMEDIATE }
     ],
-    applyUrl: 'https://adobe.com/careers',
+    applyUrl: 'https://meta.com/careers',
     source: 'Company',
-    postedDate: '1 week ago',
+    postedDate: '2 days ago',
     tier: 'Best Match'
   },
   {
-    id: 'ola-1',
-    title: 'Embedded Systems Developer',
-    company: 'Ola Electric',
-    location: 'Bangalore',
-    salaryRange: '₹20L - ₹38L',
-    minSalary: 20,
-    rating: 3.7,
+    id: 'netflix-2',
+    title: 'Senior Data Scientist',
+    company: 'Netflix',
+    location: 'Los Gatos',
+    salaryRange: '₹1.2Cr - ₹2.5Cr',
+    minSalary: 120,
+    rating: 4.9,
     requiredSkills: [
-      { name: 'Problem Solving', minLevel: SkillLevel.ADVANCED },
-      { name: 'Communication', minLevel: SkillLevel.INTERMEDIATE }
+      { name: 'Python', minLevel: SkillLevel.ADVANCED },
+      { name: 'Machine Learning', minLevel: SkillLevel.ADVANCED },
+      { name: 'Statistics', minLevel: SkillLevel.ADVANCED }
     ],
-    applyUrl: 'https://ola.com/careers',
+    applyUrl: 'https://netflix.com/jobs',
     source: 'Company',
-    postedDate: '5 days ago',
+    postedDate: '1 day ago',
+    tier: 'Stretch'
+  },
+  {
+    id: 'uber-2',
+    title: 'DevOps Architect',
+    company: 'Uber',
+    location: 'Bangalore',
+    salaryRange: '₹40L - ₹70L',
+    minSalary: 40,
+    rating: 4.3,
+    requiredSkills: [
+      { name: 'Docker', minLevel: SkillLevel.ADVANCED },
+      { name: 'Kubernetes', minLevel: SkillLevel.ADVANCED },
+      { name: 'CI/CD', minLevel: SkillLevel.ADVANCED }
+    ],
+    applyUrl: 'https://uber.com/careers',
+    source: 'LinkedIn',
+    postedDate: 'Today',
     tier: 'Skill Gap'
   },
   {
-    id: 'infosys-1',
-    title: 'Lead Consultant (Full Stack)',
-    company: 'Infosys Springboard',
-    location: 'Pune',
-    salaryRange: '₹10L - ₹18L',
-    minSalary: 10,
-    rating: 3.8,
+    id: 'spotify-1',
+    title: 'iOS Developer',
+    company: 'Spotify',
+    location: 'Stockholm',
+    salaryRange: '₹50L - ₹90L',
+    minSalary: 50,
+    rating: 4.6,
     requiredSkills: [
-      { name: 'React', minLevel: SkillLevel.ADVANCED },
-      { name: 'Node.js', minLevel: SkillLevel.ADVANCED }
+      { name: 'Swift', minLevel: SkillLevel.ADVANCED },
+      { name: 'Mobile UI Design', minLevel: SkillLevel.INTERMEDIATE }
     ],
-    applyUrl: 'https://infosys.com/careers',
+    applyUrl: 'https://spotify.com/careers',
     source: 'Company',
-    postedDate: '2 weeks ago',
-    tier: 'Best Match'
-  },
-  {
-    id: 'extra-30',
-    title: 'Mobile Architect',
-    company: 'PhonePe',
-    location: 'Bangalore',
-    salaryRange: '₹40L - ₹65L',
-    minSalary: 40,
-    rating: 4.5,
-    requiredSkills: [
-      { name: 'System Design', minLevel: SkillLevel.ADVANCED },
-      { name: 'React', minLevel: SkillLevel.ADVANCED }
-    ],
-    applyUrl: 'https://phonepe.com/careers',
-    source: 'LinkedIn',
     postedDate: '3 days ago',
-    tier: 'Stretch'
+    tier: 'Best Match'
   }
 ];
 
@@ -545,6 +427,57 @@ export const JOB_ROLES: JobRole[] = [
       { skillName: 'Docker', minLevel: SkillLevel.BASIC, priority: SkillPriority.IMPORTANT, weight: 0.1 },
       { skillName: 'System Design', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.CRITICAL, weight: 0.15 },
       { skillName: 'REST APIs', minLevel: SkillLevel.ADVANCED, priority: SkillPriority.CRITICAL, weight: 0.1 },
+    ]
+  },
+  {
+    id: 'fullstack',
+    title: 'Full Stack Developer',
+    description: 'Versatile engineer capable of handling both frontend and backend development.',
+    requirements: [
+      { skillName: 'React', minLevel: SkillLevel.ADVANCED, priority: SkillPriority.CRITICAL, weight: 0.2 },
+      { skillName: 'Node.js', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.CRITICAL, weight: 0.2 },
+      { skillName: 'SQL', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.IMPORTANT, weight: 0.15 },
+      { skillName: 'TypeScript', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.CRITICAL, weight: 0.15 },
+      { skillName: 'System Design', minLevel: SkillLevel.BASIC, priority: SkillPriority.IMPORTANT, weight: 0.15 },
+      { skillName: 'Communication', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.IMPORTANT, weight: 0.15 },
+    ]
+  },
+  {
+    id: 'datascientist',
+    title: 'Data Scientist',
+    description: 'Extracts insights from data using statistical methods and machine learning.',
+    requirements: [
+      { skillName: 'Python', minLevel: SkillLevel.ADVANCED, priority: SkillPriority.CRITICAL, weight: 0.25 },
+      { skillName: 'SQL', minLevel: SkillLevel.ADVANCED, priority: SkillPriority.CRITICAL, weight: 0.2 },
+      { skillName: 'Machine Learning', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.CRITICAL, weight: 0.2 },
+      { skillName: 'Statistics', minLevel: SkillLevel.ADVANCED, priority: SkillPriority.IMPORTANT, weight: 0.15 },
+      { skillName: 'Data Visualization', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.IMPORTANT, weight: 0.1 },
+      { skillName: 'Communication', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.IMPORTANT, weight: 0.1 },
+    ]
+  },
+  {
+    id: 'devops',
+    title: 'DevOps Engineer',
+    description: 'Bridges the gap between development and operations through automation and infrastructure.',
+    requirements: [
+      { skillName: 'Docker', minLevel: SkillLevel.ADVANCED, priority: SkillPriority.CRITICAL, weight: 0.2 },
+      { skillName: 'Kubernetes', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.CRITICAL, weight: 0.2 },
+      { skillName: 'CI/CD', minLevel: SkillLevel.ADVANCED, priority: SkillPriority.CRITICAL, weight: 0.2 },
+      { skillName: 'Linux', minLevel: SkillLevel.ADVANCED, priority: SkillPriority.IMPORTANT, weight: 0.15 },
+      { skillName: 'AWS/Azure', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.IMPORTANT, weight: 0.15 },
+      { skillName: 'Python/Bash', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.IMPORTANT, weight: 0.1 },
+    ]
+  },
+  {
+    id: 'mobile',
+    title: 'Mobile Developer',
+    description: 'Builds high-performance native or cross-platform mobile applications.',
+    requirements: [
+      { skillName: 'Swift', minLevel: SkillLevel.ADVANCED, priority: SkillPriority.CRITICAL, weight: 0.25 },
+      { skillName: 'Mobile UI Design', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.IMPORTANT, weight: 0.2 },
+      { skillName: 'API Integration', minLevel: SkillLevel.ADVANCED, priority: SkillPriority.CRITICAL, weight: 0.2 },
+      { skillName: 'Git', minLevel: SkillLevel.INTERMEDIATE, priority: SkillPriority.IMPORTANT, weight: 0.15 },
+      { skillName: 'Problem Solving', minLevel: SkillLevel.ADVANCED, priority: SkillPriority.CRITICAL, weight: 0.2 },
     ]
   }
 ];
