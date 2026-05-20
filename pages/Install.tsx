@@ -28,7 +28,7 @@ export default function Install() {
   const [progress, setProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState('Initializing connection...');
 
-  // Auto-detect OS and listen for PWA install prompt
+  // Auto-detect OS and listen for PWA install prompts & events
   useEffect(() => {
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
     if (/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream) {
@@ -42,12 +42,31 @@ export default function Install() {
       setDeferredPrompt(e);
     };
 
+    const handleAppInstalled = () => {
+      console.log('App was successfully installed natively!');
+      setProgress(100);
+      setInstallState('completed');
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
+
+  // Automatic launching via redirection
+  useEffect(() => {
+    if (installState === 'completed') {
+      const redirectTimer = setTimeout(() => {
+        // Redirection to start_url origin. On mobile this triggers direct launch of the native standalone PWA container
+        window.location.href = window.location.origin + '/#/auth';
+      }, 2200);
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [installState]);
 
   // Handle Progress Counter
   useEffect(() => {
@@ -323,6 +342,9 @@ export default function Install() {
                   </h3>
                   <p className="text-slate-400 text-xs font-semibold leading-relaxed max-w-xs mx-auto">
                     You can enjoy your learning!
+                  </p>
+                  <p className="text-indigo-400 text-[10px] font-black uppercase tracking-wider animate-pulse pt-2">
+                    Launching CareerReady Standalone...
                   </p>
                 </div>
               </motion.div>
