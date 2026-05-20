@@ -253,13 +253,13 @@ const Landing: React.FC = () => {
                     Take CareerReady <br className="hidden md:block" /> anywhere.
                   </h2>
                   <p className="text-[var(--text-muted)] text-sm md:text-base font-medium leading-relaxed">
-                    Scan this QR code with your phone's camera to instantly open the platform on your mobile browser. Pick up right where you left off.
+                    Scan this QR code with your phone's camera to instantly download and install CareerReady as a standalone app on your Android or Apple iOS device.
                   </p>
                 </div>
 
                 <div className="relative z-10 shrink-0 p-5 rounded-3xl bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(79,70,229,0.15)] transition-all duration-500">
                   <QRCode 
-                    value={window.location.origin} 
+                    value={`${window.location.origin}/#/install`} 
                     size={160}
                     level="H"
                     fgColor="#1e1e2f"
@@ -267,7 +267,7 @@ const Landing: React.FC = () => {
                     style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                   />
                   <div className="mt-4 text-center">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Scan to Open</p>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Scan to Install</p>
                   </div>
                 </div>
               </div>

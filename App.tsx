@@ -33,6 +33,7 @@ import Feedback from './pages/Feedback';
 import Jobs from './pages/Jobs';
 import IntelligenceHub from './pages/IntelligenceHub';
 import AdminDashboard from './pages/AdminDashboard';
+import Install from './pages/Install';
 import { CareerMentor } from './components/CareerMentor';
 import { ResumeScanner } from './components/ResumeScanner';
 import { GitHubSync } from './components/GitHubSync';
@@ -356,6 +357,7 @@ const App: React.FC = () => {
                 <Route path="/jobs" element={user?.isOnboardingComplete ? <Jobs user={user} onUpdateUser={handleUpdateUser} /> : <Navigate to="/landing" />} />
                 <Route path="/intelligence" element={user?.isOnboardingComplete ? <IntelligenceHub /> : <Navigate to="/landing" />} />
                 <Route path="/admin" element={user?.isOnboardingComplete ? <AdminDashboard /> : <Navigate to="/landing" />} />
+                <Route path="/install" element={<Install />} />
               </Routes>
             </div>
             {user?.isOnboardingComplete && <CareerMentor user={user} />}
