@@ -21,16 +21,41 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico'],
+        includeAssets: ['favicon.ico', 'cr-logo.png', 'cr-logo.svg', 'icon.svg'],
         manifest: {
           name: 'CareerReady AI 2.0',
           short_name: 'CareerReady',
           theme_color: '#020617',
           background_color: '#020617',
           display: 'standalone',
+          orientation: 'portrait',
           start_url: '/',
+          scope: '/',
           icons: [
-            { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' },
+            {
+              src: '/cr-logo.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'any'
+            },
+            {
+              src: '/cr-logo.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any'
+            },
+            {
+              src: '/cr-logo.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable'
+            },
+            {
+              src: '/icon.svg',
+              sizes: 'any',
+              type: 'image/svg+xml',
+              purpose: 'any'
+            }
           ],
         },
       }),
