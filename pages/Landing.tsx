@@ -10,7 +10,15 @@ import {
   ShieldCheck,
   LogIn,
   Bot,
-  Smartphone
+  Smartphone,
+  Download,
+  X,
+  Mail,
+  Phone,
+  MessageCircle,
+  Github,
+  Linkedin,
+  Instagram
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -18,6 +26,11 @@ import { ThemeToggle } from '../components/ThemeToggle';
 const Landing: React.FC = () => {
   const navigate = useNavigate();
   const [showLogin, setShowLogin] = useState(false);
+
+  // Footer Modal States
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   const scrollToSection = (id: string) => {
     if (showLogin) {
@@ -244,17 +257,24 @@ const Landing: React.FC = () => {
               <div className="bg-[var(--glass-bg)] backdrop-blur-xl border border-[var(--border-color)] rounded-[32px] p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-12 relative overflow-hidden group hover:border-indigo-500/30 transition-colors duration-500">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-[radial-gradient(circle_at_100%_0%,rgba(79,70,229,0.15)_0%,transparent_50%)] pointer-events-none"></div>
                 
-                <div className="max-w-xl relative z-10 text-center md:text-left">
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 rounded-full text-[10px] font-black tracking-widest uppercase mb-6 border border-indigo-500/20">
+                <div className="max-w-xl relative z-10 text-center md:text-left space-y-6">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 rounded-full text-[10px] font-black tracking-widest uppercase border border-indigo-500/20">
                     <Smartphone size={14} />
                     <span>Mobile Handoff</span>
                   </div>
-                  <h2 className="text-3xl md:text-4xl font-display font-black text-[var(--text-main)] tracking-tight mb-4">
+                  <h2 className="text-3xl md:text-4xl font-display font-black text-[var(--text-main)] tracking-tight">
                     Take CareerReady <br className="hidden md:block" /> anywhere.
                   </h2>
                   <p className="text-[var(--text-muted)] text-sm md:text-base font-medium leading-relaxed">
                     Scan this QR code with your phone's camera to instantly download and install CareerReady as a standalone app on your Android or Apple iOS device.
                   </p>
+                  <button
+                    onClick={() => navigate('/install')}
+                    className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 shadow-[0_10px_25px_rgba(79,70,229,0.3)] hover:-translate-y-0.5 active:scale-95 border border-indigo-400/20"
+                  >
+                    <Download size={14} />
+                    Download PWA App
+                  </button>
                 </div>
 
                 <div className="relative z-10 shrink-0 p-5 rounded-3xl bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_rgba(79,70,229,0.15)] transition-all duration-500">
@@ -277,9 +297,24 @@ const Landing: React.FC = () => {
             <footer className="border-t border-[var(--border-color)] py-10 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">
               <p>© 2026 CareerReadyAI · Built with Gemini 2.5</p>
               <div className="flex items-center gap-6">
-                <span>Privacy</span>
-                <span>Terms</span>
-                <span>Contact</span>
+                <button 
+                  onClick={() => setShowPrivacyModal(true)} 
+                  className="hover:text-[var(--text-main)] transition-colors cursor-pointer font-black"
+                >
+                  Privacy
+                </button>
+                <button 
+                  onClick={() => setShowTermsModal(true)} 
+                  className="hover:text-[var(--text-main)] transition-colors cursor-pointer font-black"
+                >
+                  Terms
+                </button>
+                <button 
+                  onClick={() => setShowContactModal(true)} 
+                  className="hover:text-[var(--text-main)] transition-colors cursor-pointer font-black"
+                >
+                  Contact
+                </button>
               </div>
             </footer>
           </div>
@@ -320,6 +355,301 @@ const Landing: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* --- Footer Modals System --- */}
+
+      {/* 1. Privacy Policy Modal */}
+      {showPrivacyModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+          <div 
+            className="bg-slate-900 border border-white/10 rounded-[32px] p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl relative text-left scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent animate-in zoom-in-95 duration-300"
+          >
+            <button 
+              onClick={() => setShowPrivacyModal(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <div className="prose prose-invert max-w-none space-y-6 text-slate-300 text-xs md:text-sm">
+              <div className="border-b border-white/10 pb-4">
+                <h1 className="text-xl font-display font-black text-white uppercase tracking-tight">Privacy Policy – CareerReady AI</h1>
+                <p className="text-slate-500 font-bold mt-1 text-[11px]">Last Updated: May 20, 2026</p>
+              </div>
+
+              <p className="leading-relaxed font-semibold">
+                Welcome to CareerReady AI. Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your information while using our platform.
+              </p>
+
+              <div className="space-y-3">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">1. Information We Collect</h2>
+                <p className="font-semibold">CareerReady AI may collect:</p>
+                <ul className="list-disc pl-5 space-y-1.5 font-semibold text-slate-400">
+                  <li>Name and Email Address</li>
+                  <li>Resume files uploaded for analysis</li>
+                  <li>GitHub username</li>
+                  <li>LinkedIn text/profile content</li>
+                  <li>Career benchmark selection</li>
+                  <li>Skills and analytics data</li>
+                  <li>Interview scores and progress reports</li>
+                  <li>Feedback submitted through the platform</li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">2. Why We Collect Your Data</h2>
+                <p className="font-semibold">We collect data to:</p>
+                <ul className="list-disc pl-5 space-y-1.5 font-semibold text-slate-400">
+                  <li>Analyze user skills</li>
+                  <li>Generate personalized career roadmaps</li>
+                  <li>Compare skills with industry benchmarks</li>
+                  <li>Recommend jobs and opportunities</li>
+                  <li>Improve interview readiness</li>
+                  <li>Create ATS-friendly resumes</li>
+                  <li>Enhance user experience</li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">3. Data Security</h2>
+                <p className="font-semibold leading-relaxed text-slate-400">
+                  We take reasonable steps to protect your information using secure authentication and database protection practices.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">4. Third-Party Services</h2>
+                <p className="font-semibold leading-relaxed text-slate-400">
+                  CareerReady AI may use third-party services such as Firebase Authentication, GitHub APIs, YouTube APIs, and AI services for platform functionality.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">5. User Rights</h2>
+                <p className="font-semibold">Users can:</p>
+                <ul className="list-disc pl-5 space-y-1.5 font-semibold text-slate-400">
+                  <li>Update personal information</li>
+                  <li>Request deletion of data</li>
+                  <li>Remove uploaded resumes</li>
+                  <li>Stop using the platform anytime</li>
+                </ul>
+              </div>
+
+              <div className="space-y-3 border-t border-white/10 pt-4">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">6. Contact Us</h2>
+                <p className="font-semibold text-slate-400">
+                  If you have any questions regarding privacy, contact:
+                </p>
+                <p className="font-black text-indigo-400">
+                  Email: <a href="mailto:sudinhr1@gmail.com" className="hover:underline">sudinhr1@gmail.com</a>
+                </p>
+              </div>
+
+              <p className="text-center font-black text-slate-400 uppercase tracking-widest text-[11px] pt-4">
+                By using CareerReady AI, you agree to this Privacy Policy.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Terms & Conditions Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+          <div 
+            className="bg-slate-900 border border-white/10 rounded-[32px] p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl relative text-left scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent animate-in zoom-in-95 duration-300"
+          >
+            <button 
+              onClick={() => setShowTermsModal(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <div className="prose prose-invert max-w-none space-y-6 text-slate-300 text-xs md:text-sm">
+              <div className="border-b border-white/10 pb-4">
+                <h1 className="text-xl font-display font-black text-white uppercase tracking-tight">Terms & Conditions – CareerReady AI</h1>
+                <p className="text-slate-500 font-bold mt-1 text-[11px]">Last Updated: May 20, 2026</p>
+              </div>
+
+              <p className="leading-relaxed font-semibold">
+                Welcome to CareerReady AI. By accessing or using this platform, you agree to follow these Terms and Conditions.
+              </p>
+
+              <div className="space-y-3">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">1. Purpose of the Platform</h2>
+                <p className="font-semibold leading-relaxed text-slate-400">
+                  CareerReady AI is designed to help students and job seekers improve career readiness through skill analysis, AI interviews, roadmaps, and job recommendations.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">2. User Responsibilities</h2>
+                <p className="font-semibold">Users agree to:</p>
+                <ul className="list-disc pl-5 space-y-1.5 font-semibold text-slate-400">
+                  <li>Provide accurate information</li>
+                  <li>Use the platform responsibly</li>
+                  <li>Avoid misuse, spam, or harmful activities</li>
+                  <li>Upload only appropriate content</li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">3. AI Recommendations Disclaimer</h2>
+                <p className="font-semibold leading-relaxed text-slate-400 text-slate-400">
+                  CareerReady AI provides AI-generated recommendations and readiness analysis. Results are guidance-based and do not guarantee job placement or employment.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">4. Intellectual Property</h2>
+                <p className="font-semibold leading-relaxed text-slate-400">
+                  All platform content, UI, branding, and features belong to CareerReady AI unless otherwise stated.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">5. Account Usage</h2>
+                <p className="font-semibold leading-relaxed text-slate-400">
+                  Users are responsible for maintaining account security and login credentials.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">6. Feature Updates</h2>
+                <p className="font-semibold leading-relaxed text-slate-400">
+                  CareerReady AI may update features, tools, and policies to improve platform experience.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">7. Termination</h2>
+                <p className="font-semibold leading-relaxed text-slate-400">
+                  Accounts violating platform rules may be restricted or removed.
+                </p>
+              </div>
+
+              <div className="space-y-3 border-t border-white/10 pt-4">
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">8. Contact Information</h2>
+                <p className="font-semibold text-slate-400">
+                  For support or queries:
+                </p>
+                <p className="font-black text-indigo-400">
+                  Email: <a href="mailto:sudinhr1@gmail.com" className="hover:underline">sudinhr1@gmail.com</a>
+                </p>
+              </div>
+
+              <p className="text-center font-black text-slate-400 uppercase tracking-widest text-[11px] pt-4">
+                By using CareerReady AI, you agree to these Terms & Conditions.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Contact Information Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+          <div 
+            className="bg-slate-900 border border-white/10 rounded-[32px] p-8 max-w-md w-full shadow-2xl relative text-left animate-in zoom-in-95 duration-300"
+          >
+            <button 
+              onClick={() => setShowContactModal(false)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors"
+            >
+              <X size={20} />
+            </button>
+            
+            <div className="space-y-6">
+              <div className="border-b border-white/10 pb-4">
+                <h2 className="text-xl font-display font-black text-white uppercase tracking-tight flex items-center gap-2">
+                  <Mail className="text-indigo-400" size={22} />
+                  Get in Touch
+                </h2>
+                <p className="text-xs text-slate-400 font-semibold mt-1">We're here to help you get CareerReady.</p>
+              </div>
+
+              {/* Clickable channels list */}
+              <div className="space-y-3.5">
+                {/* Email Address */}
+                <a 
+                  href="mailto:sudinhr1@gmail.com"
+                  className="flex items-center gap-4 p-3.5 rounded-2xl bg-indigo-500/5 hover:bg-indigo-500/10 border border-indigo-500/10 hover:border-indigo-500/20 transition-all duration-300 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Mail size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email Address</p>
+                    <p className="text-xs font-black text-white tracking-wide mt-0.5">sudinhr1@gmail.com</p>
+                  </div>
+                </a>
+
+                {/* Phone Call */}
+                <a 
+                  href="tel:+918762862509"
+                  className="flex items-center gap-4 p-3.5 rounded-2xl bg-teal-500/5 hover:bg-teal-500/10 border border-teal-500/10 hover:border-teal-500/20 transition-all duration-300 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Phone size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Phone Call</p>
+                    <p className="text-xs font-black text-white tracking-wide mt-0.5">+91 8762862509</p>
+                  </div>
+                </a>
+
+                {/* WhatsApp Chat */}
+                <a 
+                  href="https://wa.me/918762862509"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-4 p-3.5 rounded-2xl bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/10 hover:border-emerald-500/20 transition-all duration-300 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <MessageCircle size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Direct WhatsApp</p>
+                    <p className="text-xs font-black text-white tracking-wide mt-0.5">+91 8762862509</p>
+                  </div>
+                </a>
+
+                {/* Interactive Social Handles Grid */}
+                <div className="grid grid-cols-3 gap-2.5 pt-2">
+                  <a 
+                    href="https://github.com/sudeenjain" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-950/60 hover:bg-slate-950 border border-white/5 hover:border-white/10 transition-colors text-slate-400 hover:text-white gap-2 text-center group"
+                  >
+                    <Github size={18} className="group-hover:scale-110 transition-transform" />
+                    <span className="text-[9px] font-black uppercase tracking-wider">GitHub</span>
+                  </a>
+
+                  <a 
+                    href="https://www.linkedin.com/in/sudeenjain" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-950/60 hover:bg-slate-950 border border-white/5 hover:border-white/10 transition-colors text-slate-400 hover:text-white gap-2 text-center group"
+                  >
+                    <Linkedin size={18} className="group-hover:scale-110 transition-transform text-indigo-400" />
+                    <span className="text-[9px] font-black uppercase tracking-wider">LinkedIn</span>
+                  </a>
+
+                  <a 
+                    href="https://instagram.com/sudeenjain" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-950/60 hover:bg-slate-950 border border-white/5 hover:border-white/10 transition-colors text-slate-400 hover:text-white gap-2 text-center group"
+                  >
+                    <Instagram size={18} className="group-hover:scale-110 transition-transform text-pink-400" />
+                    <span className="text-[9px] font-black uppercase tracking-wider">Instagram</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
