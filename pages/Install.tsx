@@ -28,6 +28,42 @@ export default function Install() {
   const [progress, setProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState('Initializing connection...');
 
+  // Formspree States
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [formState, setFormState] = useState<'idle' | 'submitting' | 'submitted'>('idle');
+
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !message) {
+      alert("Please fill out both email and message fields.");
+      return;
+    }
+    setFormState('submitting');
+    try {
+      const response = await fetch('https://formspree.io/f/mvgyykyv', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          message: message,
+          _subject: 'CareerReady App Install Feedback (sudinhr1@gmail.com)'
+        })
+      });
+      if (response.ok) {
+        setFormState('submitted');
+      } else {
+        throw new Error('Formspree submit failed');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Could not send message. Please send directly to sudinhr1@gmail.com');
+      setFormState('idle');
+    }
+  };
+
   // Auto-detect OS and listen for PWA install prompts & events
   useEffect(() => {
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
@@ -286,9 +322,9 @@ export default function Install() {
                   </svg>
 
                   {/* Centered Percentage Display */}
-                  <div className="absolute flex flex-col items-center justify-center">
+                  <div className="absolute flex flex-col items-center justify-center text-center">
                     <span className="text-4xl font-black tracking-tight text-white">{progress}%</span>
-                    <span className="text-[9px] uppercase tracking-widest text-slate-500 font-bold mt-1">Installing</span>
+                    <span className="text-[10px] font-black tracking-widest text-indigo-400 mt-1">{(progress * 13.2 / 100).toFixed(1)} MB / 13.2 MB</span>
                   </div>
                 </div>
 
@@ -296,7 +332,7 @@ export default function Install() {
                 <div className="text-center space-y-2">
                   <h4 className="text-xs font-black uppercase tracking-widest text-indigo-400 flex items-center justify-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                    Secure Installer Engine
+                    Downloading Assets
                   </h4>
                   <p className="text-xs text-slate-400 font-semibold px-4 max-w-xs mx-auto leading-relaxed h-10 flex items-center justify-center">
                     {statusMessage}
@@ -311,7 +347,7 @@ export default function Install() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                className="text-center py-10 space-y-8 flex flex-col items-center justify-center"
+                className="text-center py-6 space-y-6 flex flex-col items-center justify-center"
               >
                 {/* Glowing Success Icon */}
                 <div className="relative">
@@ -327,24 +363,73 @@ export default function Install() {
                 </div>
 
                 {/* Required Success Message */}
-                <div className="space-y-3 px-2 pb-2">
+                <div className="space-y-4 px-2">
                   <h3 className="text-2xl font-black text-white leading-tight">
                     Installed successfully!
                   </h3>
-                  <p className="text-slate-400 text-xs font-semibold leading-relaxed max-w-xs mx-auto">
+                  <p className="text-emerald-400 text-xs font-bold leading-relaxed max-w-xs mx-auto">
                     You can enjoy your learning!
                   </p>
+                  
+                  {/* Verification Instruction Box */}
+                  <div className="p-5 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl text-xs space-y-3 mt-4 text-left">
+                    <p className="text-indigo-300 font-black uppercase tracking-wider text-[10px]">Verification Guide</p>
+                    <p className="text-slate-300 leading-relaxed font-semibold">
+                      Please check your mobile's <strong className="text-white">Home Screen</strong> to see if the CareerReady app icon has downloaded successfully.
+                    </p>
+                    <p className="text-slate-400 text-[11px]">
+                      If the app is visible, tap to open and start your standalone offline learning experience. If not, please launch your browser and retry.
+                    </p>
+                  </div>
                 </div>
 
-                {/* Direct User-Gesture Standalone Launcher Button */}
-                <button
-                  onClick={() => {
-                    window.location.href = window.location.origin + '/#/auth';
-                  }}
-                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-4.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(16,185,129,0.35)] hover:scale-[1.02] active:scale-95 transition-all duration-300 border border-emerald-400/20"
-                >
-                  Open CareerReady App
-                </button>
+                {/* Elegant Formspree Feedback Form */}
+                <div className="w-full pt-6 border-t border-white/10 text-left space-y-4">
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-black text-white uppercase tracking-wider">App Didn't Install?</h4>
+                    <p className="text-slate-400 text-[11px] font-semibold">Send a message to our support desk (sudinhr1@gmail.com)</p>
+                  </div>
+
+                  {formState === 'submitted' ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl text-xs font-bold text-center"
+                    >
+                      Thank you! Your feedback was sent successfully to sudinhr1@gmail.com. We will contact you shortly.
+                    </motion.div>
+                  ) : (
+                    <form onSubmit={handleFeedbackSubmit} className="space-y-3">
+                      <div>
+                        <input
+                          type="email"
+                          placeholder="Your Email Address"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all font-semibold"
+                        />
+                      </div>
+                      <div>
+                        <textarea
+                          placeholder="Type your message here describing the install issue..."
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value)}
+                          required
+                          rows={3}
+                          className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all font-semibold resize-none"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={formState === 'submitting'}
+                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:text-slate-400 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-md border border-indigo-400/20 active:scale-[0.98]"
+                      >
+                        {formState === 'submitting' ? 'Sending Message...' : 'Send Message'}
+                      </button>
+                    </form>
+                  )}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
