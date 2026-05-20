@@ -470,26 +470,17 @@ export default function Install() {
                     Cancel
                   </button>
                   <button
-                    onClick={async () => {
+                    onClick={() => {
                       setShowPrompt(false);
                       if (deferredPrompt) {
                         try {
                           deferredPrompt.prompt();
-                          const { outcome } = await deferredPrompt.userChoice;
-                          if (outcome === 'accepted') {
-                            setDeferredPrompt(null);
-                            setInstallState('installing');
-                          } else {
-                            setInstallState('idle');
-                          }
                         } catch (err) {
-                          console.error(err);
-                          // Graceful fallback to 5s loader on prompt errors
-                          setInstallState('installing');
+                          console.error("Native PWA installer prompt failed:", err);
                         }
-                      } else {
-                        setInstallState('installing');
                       }
+                      // Immediately start the 5-second dynamic loader! Never hang on non-standard browser promises.
+                      setInstallState('installing');
                     }}
                     className="flex-1 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white bg-indigo-600 hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-600/25 active:scale-95"
                   >
