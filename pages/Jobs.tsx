@@ -365,7 +365,7 @@ const Jobs: React.FC<{ user: UserProfile, onUpdateUser: (u: UserProfile) => void
                     <Zap size={12} className="text-indigo-400" /> Technology Pulse
                   </h4>
                   <button onClick={clearFilters} className="text-[8px] font-black uppercase tracking-widest text-indigo-400 hover:text-white transition-colors flex items-center gap-1">
-                    <Rotat eCcw size={10} /> Reset
+                    <RotateCcw size={10} /> Reset
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto custom-scrollbar pr-2">

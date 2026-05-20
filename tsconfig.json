@@ -26,5 +26,12 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test_github.ts",
+    "test_github.js",
+    "test_gemini.ts"
+  ]
 }

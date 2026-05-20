@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { UserProfile, Skill, SkillLevel } from '../types';
+import { UserProfile, Skill, SkillLevel, Project } from '../types';
 import { JOB_ROLES } from '../constants';
 import { 
   User, 
@@ -427,7 +427,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
                             <div className="flex items-center justify-between mb-1">
                               <span className="text-xs font-black text-indigo-400">{p.name} <span className="text-[9px] text-slate-500 font-normal ml-1">(@{formData.githubUser})</span></span>
                               <div className="flex gap-1">
-                                {p.techStack.slice(0, 3).map((tech, i) => (
+                                {p.techStack.slice(0, 3).map((tech: string, i: number) => (
                                   <span key={i} className="px-1.5 py-0.5 rounded-md bg-indigo-500/20 text-[8px] font-bold text-indigo-300 uppercase tracking-tighter">{tech}</span>
                                 ))}
                               </div>
