@@ -62,7 +62,10 @@ export default function Auth({ onAuthenticated }: { onAuthenticated: (me: { name
       sendWelcomeEmail(me.email, me.full_name || me.email.split("@")[0]);
       navigate("/onboarding");
     } catch (e: any) {
-      setError(e?.message || "Authentication failed");
+      const genericMsg = mode === "login"
+        ? "If you are new to this platform, please Register first using the tab above. If already registered, please double check your credentials."
+        : "If you already have an account, please use the Login tab above.";
+      setError(e?.message ? `${e.message}. ${genericMsg}` : genericMsg);
     } finally {
       setLoading(false);
     }
@@ -188,6 +191,24 @@ export default function Auth({ onAuthenticated }: { onAuthenticated: (me: { name
             Register
           </button>
         </div>
+
+        {mode === "login" ? (
+          <div className="mb-8 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-200 font-medium leading-relaxed flex items-start gap-2.5 animate-in fade-in duration-300">
+            <span className="text-base shrink-0">✨</span>
+            <div>
+              <strong className="text-white block mb-0.5">First time on CareerReady?</strong>
+              Please use the <strong className="text-white underline cursor-pointer" onClick={() => setMode("register")}>Register</strong> tab above to create a new profile.
+            </div>
+          </div>
+        ) : (
+          <div className="mb-8 p-4 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-xs text-teal-200 font-medium leading-relaxed flex items-start gap-2.5 animate-in fade-in duration-300">
+            <span className="text-base shrink-0">✨</span>
+            <div>
+              <strong className="text-white block mb-0.5">Already registered?</strong>
+              Please use the <strong className="text-white underline cursor-pointer" onClick={() => setMode("login")}>Login</strong> tab above to access your profile.
+            </div>
+          </div>
+        )}
 
         {/* social / providers section */}
         <div className="space-y-4 mb-8">
