@@ -41,10 +41,11 @@ export default function Install() {
     }
     setFormState('submitting');
     try {
-      const response = await fetch('https://formspree.io/f/mvgyykyv', {
+      const response = await fetch('https://formsubmit.co/ajax/sudinhr1@gmail.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           email: email,
@@ -52,10 +53,11 @@ export default function Install() {
           _subject: 'CareerReady App Install Feedback (sudinhr1@gmail.com)'
         })
       });
-      if (response.ok) {
+      const data = await response.json();
+      if (response.ok && data.success === 'true') {
         setFormState('submitted');
       } else {
-        throw new Error('Formspree submit failed');
+        throw new Error('FormSubmit delivery failed');
       }
     } catch (err) {
       console.error(err);
@@ -224,7 +226,14 @@ export default function Install() {
 
                 {/* Primary Download/Install Button */}
                 <button
-                  onClick={() => setShowPrompt(true)}
+                  onClick={() => {
+                    if (deferredPrompt) {
+                      setShowPrompt(true);
+                    } else {
+                      // Prompt not ready or not supported by WebView/In-app browser - immediately trigger 5s progress screen!
+                      setInstallState('installing');
+                    }
+                  }}
                   className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white py-4.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(79,70,229,0.3)] hover:scale-[1.02] active:scale-95 transition-all duration-300 border border-indigo-400/20"
                 >
                   <Download size={16} />
@@ -483,16 +492,21 @@ export default function Install() {
                     onClick={async () => {
                       setShowPrompt(false);
                       if (deferredPrompt) {
-                        deferredPrompt.prompt();
-                        const { outcome } = await deferredPrompt.userChoice;
-                        if (outcome === 'accepted') {
-                          setDeferredPrompt(null);
+                        try {
+                          deferredPrompt.prompt();
+                          const { outcome } = await deferredPrompt.userChoice;
+                          if (outcome === 'accepted') {
+                            setDeferredPrompt(null);
+                            setInstallState('installing');
+                          } else {
+                            setInstallState('idle');
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          // Graceful fallback to 5s loader on prompt errors
                           setInstallState('installing');
-                        } else {
-                          setInstallState('idle');
                         }
                       } else {
-                        // Fallback to progress bar animation if prompt event is not available
                         setInstallState('installing');
                       }
                     }}
