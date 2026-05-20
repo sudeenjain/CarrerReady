@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function Install() {
   const navigate = useNavigate();
   const [device, setDevice] = useState<'android' | 'ios'>('android');
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   
   // Custom Flow States
   const [showPrompt, setShowPrompt] = useState(false);
@@ -27,7 +28,7 @@ export default function Install() {
   const [progress, setProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState('Initializing connection...');
 
-  // Auto-detect OS on mount
+  // Auto-detect OS and listen for PWA install prompt
   useEffect(() => {
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
     if (/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream) {
@@ -35,6 +36,17 @@ export default function Install() {
     } else {
       setDevice('android');
     }
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
   }, []);
 
   // Handle Progress Counter
@@ -363,9 +375,21 @@ export default function Install() {
                     Cancel
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setShowPrompt(false);
-                      setInstallState('installing');
+                      if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        if (outcome === 'accepted') {
+                          setDeferredPrompt(null);
+                          setInstallState('installing');
+                        } else {
+                          setInstallState('idle');
+                        }
+                      } else {
+                        // Fallback to progress bar animation if prompt event is not available
+                        setInstallState('installing');
+                      }
                     }}
                     className="flex-1 py-3.5 rounded-xl text-xs font-black uppercase tracking-wider text-white bg-indigo-600 hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-600/25 active:scale-95"
                   >
