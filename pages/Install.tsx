@@ -100,7 +100,7 @@ export default function Install() {
     if (installState !== 'installing') return;
 
     setProgress(0);
-    const totalDuration = 4000; // 4 seconds total install
+    const totalDuration = 5000; // Exactly 5 seconds total install
     const steps = 100;
     const intervalTime = totalDuration / steps;
 
@@ -125,7 +125,7 @@ export default function Install() {
           clearInterval(interval);
           setTimeout(() => {
             setInstallState('completed');
-          }, 600);
+          }, 300);
           return 100;
         }
         return next;
