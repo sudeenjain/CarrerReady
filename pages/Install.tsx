@@ -57,16 +57,7 @@ export default function Install() {
     };
   }, []);
 
-  // Automatic launching via redirection
-  useEffect(() => {
-    if (installState === 'completed') {
-      const redirectTimer = setTimeout(() => {
-        // Redirection to start_url origin. On mobile this triggers direct launch of the native standalone PWA container
-        window.location.href = window.location.origin + '/#/auth';
-      }, 2200);
-      return () => clearTimeout(redirectTimer);
-    }
-  }, [installState]);
+  // Empty launcher effect
 
   // Handle Progress Counter
   useEffect(() => {
@@ -336,17 +327,24 @@ export default function Install() {
                 </div>
 
                 {/* Required Success Message */}
-                <div className="space-y-3 px-2">
+                <div className="space-y-3 px-2 pb-2">
                   <h3 className="text-2xl font-black text-white leading-tight">
                     Installed successfully!
                   </h3>
                   <p className="text-slate-400 text-xs font-semibold leading-relaxed max-w-xs mx-auto">
                     You can enjoy your learning!
                   </p>
-                  <p className="text-indigo-400 text-[10px] font-black uppercase tracking-wider animate-pulse pt-2">
-                    Launching CareerReady Standalone...
-                  </p>
                 </div>
+
+                {/* Direct User-Gesture Standalone Launcher Button */}
+                <button
+                  onClick={() => {
+                    window.location.href = window.location.origin + '/#/auth';
+                  }}
+                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-4.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(16,185,129,0.35)] hover:scale-[1.02] active:scale-95 transition-all duration-300 border border-emerald-400/20"
+                >
+                  Open CareerReady App
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
