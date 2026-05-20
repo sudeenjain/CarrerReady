@@ -33,41 +33,16 @@ export default function Install() {
   const [message, setMessage] = useState('');
   const [formState, setFormState] = useState<'idle' | 'submitting' | 'submitted'>('idle');
 
-  const handleFeedbackSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !message) {
-      alert("Please fill out both email and message fields.");
-      return;
-    }
-    setFormState('submitting');
-    try {
-      const response = await fetch('https://formsubmit.co/ajax/sudinhr1@gmail.com', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email,
-          message: message,
-          _subject: 'CareerReady App Install Feedback (sudinhr1@gmail.com)'
-        })
-      });
-      const data = await response.json();
-      if (response.ok && data.success === 'true') {
-        setFormState('submitted');
-      } else {
-        throw new Error('FormSubmit delivery failed');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Could not send message. Please send directly to sudinhr1@gmail.com');
-      setFormState('idle');
-    }
-  };
+  // Feedback submit handler - Form is processed natively by FormSubmit.co for 100% CORS reliability across all mobile devices
 
   // Auto-detect OS and listen for PWA install prompts & events
   useEffect(() => {
+    // Check if redirected back after a successful form submission
+    if (window.location.href.includes('status=success')) {
+      setInstallState('completed');
+      setFormState('submitted');
+    }
+
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
     if (/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream) {
       setDevice('ios');
@@ -408,22 +383,29 @@ export default function Install() {
                       Thank you! Your feedback was sent successfully to sudinhr1@gmail.com. We will contact you shortly.
                     </motion.div>
                   ) : (
-                    <form onSubmit={handleFeedbackSubmit} className="space-y-3">
+                    <form 
+                      action="https://formsubmit.co/sudinhr1@gmail.com" 
+                      method="POST" 
+                      className="space-y-3"
+                    >
+                      {/* Configuration fields for FormSubmit.co */}
+                      <input type="hidden" name="_subject" value="CareerReady App Install Issue Feedback" />
+                      <input type="hidden" name="_next" value={`${window.location.origin}/#/install?status=success`} />
+                      <input type="hidden" name="_captcha" value="false" />
+
                       <div>
                         <input
                           type="email"
+                          name="email"
                           placeholder="Your Email Address"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
                           required
                           className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all font-semibold"
                         />
                       </div>
                       <div>
                         <textarea
+                          name="message"
                           placeholder="Type your message here describing the install issue..."
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value)}
                           required
                           rows={3}
                           className="w-full bg-slate-950/80 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all font-semibold resize-none"
@@ -431,10 +413,9 @@ export default function Install() {
                       </div>
                       <button
                         type="submit"
-                        disabled={formState === 'submitting'}
-                        className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 disabled:text-slate-400 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-md border border-indigo-400/20 active:scale-[0.98]"
+                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-md border border-indigo-400/20 active:scale-[0.98]"
                       >
-                        {formState === 'submitting' ? 'Sending Message...' : 'Send Message'}
+                        Send Message
                       </button>
                     </form>
                   )}
