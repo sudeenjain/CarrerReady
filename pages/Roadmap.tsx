@@ -219,9 +219,46 @@ const Roadmap: React.FC<{ user: UserProfile, onUpdateUser: (u: UserProfile) => v
   const handleSyncProjectLink = async (day: number, url: string) => {
     if (!url) return;
     setIsSyncingProject(day);
+    
+    const step = steps.find(s => s.day === day);
+    const goal = step ? step.primaryGoal : `Day ${day} Project`;
+
     try {
-      await new Promise(r => setTimeout(r, 1000)); // Simulate sync
-      toast.success("GitHub Project Analyzed & Synced Successfully.");
+      // Send submission details to Formspree endpoint (mykvwrkl)
+      const res = await fetch('https://formspree.io/f/mykvwrkl', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          name: user.name || 'Student',
+          email: user.email || 'student@careerready.ai',
+          targetRole: user.targetRole,
+          day: day,
+          projectGoal: goal,
+          repositoryUrl: url,
+          _subject: `New CareerReadyAI Project Submission (Day ${day}) from ${user.name || 'Student'}`
+        })
+      });
+
+      if (!res.ok) {
+        throw new Error('Formspree transmission failed');
+      }
+
+      // Persist the submitted URL locally
+      const updatedSteps = [...steps];
+      const stepIdx = updatedSteps.findIndex(s => s.day === day);
+      if (stepIdx !== -1) {
+        updatedSteps[stepIdx].projectSubmissionUrl = url;
+        setSteps(updatedSteps);
+        localStorage.setItem(`roadmap_daily_${user.targetRole}`, JSON.stringify(updatedSteps));
+      }
+
+      toast.success("GitHub Project Submitted & Synced Successfully! 🔥");
+    } catch (err) {
+      console.error("Project submission failed:", err);
+      toast.error("Submission failed. Check your network.");
     } finally {
       setIsSyncingProject(null);
     }
@@ -578,13 +615,13 @@ const Roadmap: React.FC<{ user: UserProfile, onUpdateUser: (u: UserProfile) => v
                       <input
                         type="text"
                         placeholder="Repository URL (e.g., github.com/user/repo)"
-                        value={projectUrls[step.day] || ''}
+                        value={projectUrls[step.day] !== undefined ? projectUrls[step.day] : (step.projectSubmissionUrl || '')}
                         onChange={(e) => setProjectUrls({ ...projectUrls, [step.day]: e.target.value })}
                         className="flex-1 px-4 py-3 rounded-xl bg-black/20 border border-white/10 text-xs text-[var(--text-main)] dark:text-white focus:outline-none focus:border-indigo-500"
                       />
                       <button
-                        onClick={() => handleSyncProjectLink(step.day, projectUrls[step.day])}
-                        disabled={!projectUrls[step.day] || isSyncingProject === step.day}
+                        onClick={() => handleSyncProjectLink(step.day, projectUrls[step.day] !== undefined ? projectUrls[step.day] : (step.projectSubmissionUrl || ''))}
+                        disabled={!(projectUrls[step.day] !== undefined ? projectUrls[step.day] : (step.projectSubmissionUrl || '')) || isSyncingProject === step.day}
                         className="px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 flex items-center gap-2"
                       >
                         {isSyncingProject === step.day ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
