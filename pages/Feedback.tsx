@@ -12,7 +12,7 @@ interface FeedbackItem {
 
 const DRAFT_KEY = 'cr_feedback_draft';
 const PENDING_KEY = 'cr_feedback_pending';
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xojvgpla';
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mykvwrkl';
 
 const Feedback: React.FC = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -48,8 +48,8 @@ const Feedback: React.FC = () => {
     }
   }, [formData]);
 
-  const sendToFormspree = async (item: FeedbackItem) => {
-    // We send to Formspree using fetch as requested
+  const sendFeedback = async (item: FeedbackItem) => {
+    // Send to Formspree
     const response = await fetch(FORMSPREE_ENDPOINT, {
       method: 'POST',
       headers: { 
@@ -66,7 +66,7 @@ const Feedback: React.FC = () => {
     });
 
     if (!response.ok) {
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       throw new Error(data.errors?.[0]?.message || 'Formspree transmission failed');
     }
     return true;
@@ -91,8 +91,8 @@ const Feedback: React.FC = () => {
     localStorage.removeItem(DRAFT_KEY);
 
     try {
-      // 2. Attempt Real-time Transmission to Formspree
-      await sendToFormspree(newItem);
+      // 2. Attempt Real-time Transmission via Formspree
+      await sendFeedback(newItem);
       
       // 3. Success: Remove from pending outbox
       const finalPending = updatedPending.filter(i => i.id !== newItem.id);
@@ -117,7 +117,7 @@ const Feedback: React.FC = () => {
     setPendingItems(prev => prev.map(i => i.id === id ? { ...i, status: 'syncing' } : i));
 
     try {
-      await sendToFormspree(item);
+      await sendFeedback(item);
       const remaining = pendingItems.filter(i => i.id !== id);
       setPendingItems(remaining);
       localStorage.setItem(PENDING_KEY, JSON.stringify(remaining));
